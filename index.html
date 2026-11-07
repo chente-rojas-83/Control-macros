@@ -5,41 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Control de Macros Semanal</title>
   
-  <!-- Configuración PWA Nativa Android/iOS -->
   <meta name="theme-color" content="#2563eb">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="MacroTracker">
+  <meta name="apple-mobile-web-app-title" content="Macros">
 
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>">
-  
-  <link rel="manifest" href="data:application/manifest+json;charset=utf-8,{
-    %22name%22: %22Control de Macros Semanal%22,
-    %22short_name%22: %22Macros%22,
-    %22start_url%22: %22./%22,
-    %22display%22: %22standalone%22,
-    %22background_color%22: %22%23f8fafc%22,
-    %22theme_color%22: %22%232563eb%22,
-    %22icons%22: [
-      {
-        %22src%22: %22data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚖️</text></svg>%22,
-        %22sizes%22: %22192x192 512x512%22,
-        %22type%22: %22image/svg+xml%22,
-        %22purpose%22: %22any maskable%22
-      }
-    ]
-  }">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icon.png">
+  <link rel="apple-touch-icon" href="./icon.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { -webkit-tap-highlight-color: transparent; }
     input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
-    }
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
     .macro-input { transition: all 0.15s ease; }
     .macro-input:focus { transform: scale(1.03); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4); }
@@ -47,11 +27,11 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-16 font-sans">
 
-  <!-- PWA Install Banner -->
-  <div id="pwa-banner" class="hidden bg-blue-900 text-white p-3 text-xs md:text-sm flex justify-between items-center sticky top-0 z-50 shadow-md">
-    <span>📱 Instala esta app en tu pantalla de inicio para acceso rápido y sin internet.</span>
-    <button id="pwa-btn" class="bg-blue-500 hover:bg-blue-400 text-white font-bold px-3 py-1.5 rounded-lg text-xs ml-2 shrink-0 transition">
-      Instalar
+  <!-- Botón de instalación explícito dentro de la App -->
+  <div id="install-container" class="hidden bg-blue-600 text-white p-3 text-xs md:text-sm flex justify-between items-center sticky top-0 z-50 shadow-md">
+    <span class="font-medium">🚀 Instala esta app en tu pantalla de inicio para acceso rápido.</span>
+    <button id="btn-install" class="bg-white text-blue-700 hover:bg-blue-50 font-bold px-3 py-1.5 rounded-lg text-xs ml-2 shrink-0 transition shadow-sm">
+      Instalar App
     </button>
   </div>
 
@@ -98,20 +78,35 @@
         </div>
       </div>
 
-      <!-- Resumen Peso -->
+      <!-- Resumen Peso y Talla (Semanal) -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h3 class="font-bold text-slate-900 text-sm border-b pb-2">📊 Control de Peso</h3>
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-slate-600">Peso Inicial:</span>
-          <input type="number" step="0.1" id="peso-inicial" onchange="updateInitialWeight()" onfocus="this.select()" class="w-24 bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-slate-800">
+        <h3 class="font-bold text-slate-900 text-sm border-b pb-2">📊 Control de Peso y Talla</h3>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <label class="text-[10px] text-slate-500 block mb-0.5">Peso Inicial (Kg)</label>
+            <input type="number" step="0.1" id="peso-inicial" onchange="updateInitialWeight()" onfocus="this.select()" class="w-full bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-slate-800">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-500 block mb-0.5">Talla Inicial (cm)</label>
+            <input type="number" step="0.1" id="talla-inicial" onchange="updateInitialTalla()" onfocus="this.select()" class="w-full bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-slate-800">
+          </div>
         </div>
-        <div class="flex justify-between items-center text-xs">
-          <span class="text-slate-600">Peso Final Actual:</span>
-          <span id="peso-final-display" class="font-bold text-slate-900 text-sm">136.4 Kg</span>
+        <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t">
+          <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded">
+            <span class="text-slate-500">Peso Final:</span>
+            <span id="peso-final-display" class="font-bold text-slate-900">0 Kg</span>
+          </div>
+          <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded">
+            <span class="text-slate-500">Talla Final:</span>
+            <input type="number" step="0.1" id="talla-final" onchange="updateFinalTalla()" onfocus="this.select()" class="w-16 bg-white border border-slate-300 rounded p-0.5 text-center font-bold text-slate-800">
+          </div>
         </div>
         <div class="flex justify-between items-center pt-1 border-t text-xs">
-          <span class="text-slate-600 font-medium">Variación Total:</span>
-          <span id="peso-delta-display" class="font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">-1.1 Kg</span>
+          <span class="text-slate-600 font-medium">Variación (Peso / Talla):</span>
+          <div class="flex gap-1">
+            <span id="peso-delta-display" class="font-bold px-2 py-0.5 rounded bg-blue-100 text-blue-800">-1.1 Kg</span>
+            <span id="talla-delta-display" class="font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">0.0 cm</span>
+          </div>
         </div>
       </div>
     </div>
@@ -123,14 +118,10 @@
         <span class="text-[10px] bg-blue-700 px-2 py-0.5 rounded-full text-blue-100 font-medium">Captura Diaria</span>
       </div>
 
-      <!-- Tarjetas de Días (Diseño intuitivo vertical optimizado para celular, sin scroll lateral) -->
-      <div id="days-container" class="divide-y divide-slate-100">
-        <!-- Generado dinámicamente -->
-      </div>
+      <div id="days-container" class="divide-y divide-slate-100"></div>
 
       <!-- Totales y Nivelación Footer -->
       <div class="bg-slate-50 p-4 border-t-2 border-slate-200 space-y-3 text-xs">
-        <!-- Fila Nivelación -->
         <div class="bg-yellow-100/90 p-3 rounded-lg border border-yellow-200 space-y-2">
           <div class="font-bold text-slate-900 flex justify-between items-center">
             <span>⚠️ Nivelación Semanal (Faltante/Sobrante):</span>
@@ -152,7 +143,6 @@
           </div>
         </div>
 
-        <!-- Promedios y Resultados -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
           <div class="bg-white p-2 rounded border border-slate-200">
             <span class="text-[10px] text-slate-500 block">Promedio Peso</span>
@@ -176,7 +166,6 @@
     </div>
   </div>
 
-  <!-- Script Lógica Inteligente -->
   <script>
     const DAYS_NAMES = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"];
     
@@ -191,6 +180,8 @@
           targetCarb: 220,
           targetFat: 85,
           pesoInicial: 137.5,
+          tallaInicial: 0,
+          tallaFinal: 0,
           days: [
             { day: "Lunes", date: "02/11/2026", peso: 137.5, prot: 200, carb: 220, fat: 85 },
             { day: "Martes", date: "03/11/2026", peso: 137.5, prot: 200, carb: 220, fat: 85 },
@@ -246,6 +237,8 @@
         targetCarb: lastWeek.targetCarb,
         targetFat: lastWeek.targetFat,
         pesoInicial: getPesoFinal(lastWeek) || lastWeek.pesoInicial,
+        tallaInicial: lastWeek.tallaFinal || lastWeek.tallaInicial || 0,
+        tallaFinal: 0,
         days: DAYS_NAMES.map(d => ({ day: d, date: "", peso: "", prot: "", carb: "", fat: "" }))
       };
 
@@ -260,11 +253,16 @@
 
     function renderTable() {
       const week = getCurrentWeek();
+      if(week.tallaInicial === undefined) week.tallaInicial = 0;
+      if(week.tallaFinal === undefined) week.tallaFinal = 0;
+
       document.getElementById("week-title").textContent = week.title;
       document.getElementById("target-prot").value = week.targetProt;
       document.getElementById("target-carb").value = week.targetCarb;
       document.getElementById("target-fat").value = week.targetFat;
       document.getElementById("peso-inicial").value = week.pesoInicial;
+      document.getElementById("talla-inicial").value = week.tallaInicial;
+      document.getElementById("talla-final").value = week.tallaFinal;
 
       const targetCal = (week.targetProt * 4) + (week.targetCarb * 4) + (week.targetFat * 9);
       document.getElementById("target-cal-display").textContent = `${targetCal} kcal`;
@@ -316,7 +314,6 @@
           </div>
 
           <div class="grid grid-cols-3 gap-2 pt-1">
-            <!-- Proteína -->
             <div class="bg-blue-50/40 p-2 rounded-lg border border-blue-100">
               <div class="flex justify-between items-center mb-1">
                 <span class="text-[10px] font-bold text-blue-700">Prot (g)</span>
@@ -328,7 +325,6 @@
                 class="w-full bg-white border border-blue-200 rounded p-1.5 text-center font-bold text-blue-900 text-sm macro-input">
             </div>
 
-            <!-- Carbohidratos -->
             <div class="bg-amber-50/40 p-2 rounded-lg border border-amber-100">
               <div class="flex justify-between items-center mb-1">
                 <span class="text-[10px] font-bold text-amber-700">Carbos (g)</span>
@@ -340,7 +336,6 @@
                 class="w-full bg-white border border-amber-200 rounded p-1.5 text-center font-bold text-amber-900 text-sm macro-input">
             </div>
 
-            <!-- Grasa -->
             <div class="bg-emerald-50/40 p-2 rounded-lg border border-emerald-100">
               <div class="flex justify-between items-center mb-1">
                 <span class="text-[10px] font-bold text-emerald-700">Grasas (g)</span>
@@ -360,7 +355,6 @@
         container.appendChild(card);
       });
 
-      // Cálculo Nivelación Semanal
       const weeklyTargetProt = week.targetProt * 7;
       const weeklyTargetCarb = week.targetCarb * 7;
       const weeklyTargetFat = week.targetFat * 7;
@@ -374,7 +368,6 @@
       document.getElementById("niv-fat").textContent = formatDiff(nivF);
       document.getElementById("niv-cal").textContent = `${(nivP * 4) + (nivC * 4) + (nivF * 9)} kcal`;
 
-      // Promedios y Totales
       const divisor = countDaysWithData > 0 ? countDaysWithData : 1;
       const avgPeso = weights.length > 0 ? (weights.reduce((a, b) => a + b, 0) / weights.length).toFixed(1) : 0;
 
@@ -383,10 +376,11 @@
 
       const pesoFinal = weights.length > 0 ? weights[weights.length - 1] : week.pesoInicial;
       const deltaPeso = (pesoFinal - week.pesoInicial).toFixed(1);
+      const deltaTalla = (week.tallaFinal - week.tallaInicial).toFixed(1);
       
       document.getElementById("peso-final-display").textContent = `${pesoFinal} Kg`;
-      const deltaEl = document.getElementById("peso-delta-display");
-      deltaEl.textContent = `${deltaPeso > 0 ? '+' : ''}${deltaPeso} Kg`;
+      document.getElementById("peso-delta-display").textContent = `${deltaPeso > 0 ? '+' : ''}${deltaPeso} Kg`;
+      document.getElementById("talla-delta-display").textContent = `${deltaTalla > 0 ? '+' : ''}${deltaTalla} cm`;
       document.getElementById("res-peso-diff").textContent = `${deltaPeso > 0 ? '+' : ''}${deltaPeso} Kg`;
     }
 
@@ -420,6 +414,18 @@
       saveState();
     }
 
+    function updateInitialTalla() {
+      const week = getCurrentWeek();
+      week.tallaInicial = parseFloat(document.getElementById("talla-inicial").value) || 0;
+      saveState();
+    }
+
+    function updateFinalTalla() {
+      const week = getCurrentWeek();
+      week.tallaFinal = parseFloat(document.getElementById("talla-final").value) || 0;
+      saveState();
+    }
+
     function resetCurrentWeek() {
       if (confirm("¿Seguro que deseas reiniciar los registros de esta semana?")) {
         const week = getCurrentWeek();
@@ -435,29 +441,25 @@
 
     // Service Worker PWA
     if ('serviceWorker' in navigator) {
-      const swCode = `
-        self.addEventListener('install', e => e.waitUntil(self.skipWaiting()));
-        self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-        self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => caches.match(e.request))));
-      `;
-      const blob = new Blob([swCode], { type: 'application/javascript' });
-      navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
 
+    // Botón de instalación explícito dentro de la App
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      document.getElementById('pwa-banner').classList.remove('hidden');
+      document.getElementById('install-container').classList.remove('hidden');
     });
 
-    document.getElementById('pwa-btn')?.addEventListener('click', () => {
+    document.getElementById('btn-install').addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => {
-          document.getElementById('pwa-banner').classList.add('hidden');
-          deferredPrompt = null;
-        });
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('install-container').classList.add('hidden');
+        }
+        deferredPrompt = null;
       }
     });
 
