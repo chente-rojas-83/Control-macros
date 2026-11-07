@@ -237,3 +237,205 @@
               <span class="text-[10px] text-slate-500 block">Promedio Peso</span>
               <span id="prom-peso" class="font-bold text-slate-800 text-sm">0.0 Kg</span>
             </div>
+            <div class="bg-white p-2 rounded border border-slate-200">
+              <span class="text-[10px] text-slate-500 block">Promedio Calorías</span>
+              <span id="prom-cal" class="font-bold text-slate-800 text-sm">0 kcal</span>
+            </div>
+            <div class="bg-white p-2 rounded border border-slate-200">
+              <span class="text-[10px] text-slate-500 block">Variación Peso</span>
+              <span id="res-peso-diff" class="font-bold text-blue-600 text-sm">0.0 Kg</span>
+            </div>
+            <div class="bg-white p-2 rounded border border-slate-200">
+              <button onclick="resetCurrentWeek()" class="w-full mt-1 text-[11px] text-rose-600 hover:text-rose-800 font-medium underline">
+                Reiniciar Semana
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="setMode('quick')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
+        ⚡ VOLVER A REGISTRO RÁPIDO
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    const DAYS_NAMES = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"];
+    
+    const CLEAN_DATA = {
+      activeWeekId: "week_1",
+      weeks: {
+        "week_1": {
+          id: "week_1",
+          title: "Semana 1",
+          startDate: "",
+          targetProt: 0,
+          targetCarb: 0,
+          targetFat: 0,
+          pesoInicial: 0,
+          tallaInicial: 0,
+          tallaFinal: 0,
+          days: DAYS_NAMES.map(d => ({ day: d, date: "", peso: "", prot: "", carb: "", fat: "" }))
+        }
+      }
+    };
+
+    let appState = JSON.parse(localStorage.getItem("macroTrackerStateClean")) || CLEAN_DATA;
+    let currentDayIndex = 0; // Lunes por defecto
+
+    function setMode(mode) {
+      const qView = document.getElementById("view-quick");
+      const fView = document.getElementById("view-full");
+      const qTab = document.getElementById("tab-quick");
+      const fTab = document.getElementById("tab-full");
+
+      if (mode === 'quick') {
+        qView.classList.remove("hidden");
+        fView.classList.add("hidden");
+        qTab.className = "flex-1 py-2 text-center rounded-lg bg-blue-600 text-white shadow-sm transition font-bold";
+        fTab.className = "flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition font-bold";
+      } else {
+        fView.classList.remove("hidden");
+        qView.classList.add("hidden");
+        fTab.className = "flex-1 py-2 text-center rounded-lg bg-blue-600 text-white shadow-sm transition font-bold";
+        qTab.className = "flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition font-bold";
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function saveState() {
+      localStorage.setItem("macroTrackerStateClean", JSON.stringify(appState));
+      render();
+    }
+
+    function getCurrentWeek() {
+      return appState.weeks[appState.activeWeekId] || Object.values(appState.weeks)[0];
+    }
+
+    function renderWeekSelect() {
+      const select = document.getElementById("week-select");
+      select.innerHTML = "";
+      Object.values(appState.weeks).forEach(w => {
+        const option = document.createElement("option");
+        option.value = w.id;
+        option.textContent = w.title;
+        if (w.id === appState.activeWeekId) option.selected = true;
+        select.appendChild(option);
+      });
+    }
+
+    function switchWeek(weekId) {
+      appState.activeWeekId = weekId;
+      saveState();
+    }
+
+    function addNewWeek() {
+      const weekKeys = Object.keys(appState.weeks);
+      const newNum = weekKeys.length + 1;
+      const newId = `week_${Date.now()}`;
+      const lastWeek = getCurrentWeek();
+      
+      appState.weeks[newId] = {
+        id: newId,
+        title: `Semana ${newNum}`,
+        startDate: "",
+        targetProt: lastWeek.targetProt,
+        targetCarb: lastWeek.targetCarb,
+        targetFat: lastWeek.targetFat,
+        pesoInicial: getPesoFinal(lastWeek) || lastWeek.pesoInicial,
+        tallaInicial: lastWeek.tallaFinal || lastWeek.tallaInicial || 0,
+        tallaFinal: 0,
+        days: DAYS_NAMES.map(d => ({ day: d, date: "", peso: "", prot: "", carb: "", fat: "" }))
+      };
+
+      appState.activeWeekId = newId;
+      saveState();
+    }
+
+    function getPesoFinal(week) {
+      const filledWeights = week.days.map(d => parseFloat(d.peso)).filter(p => !isNaN(p) && p > 0);
+      return filledWeights.length > 0 ? filledWeights[filledWeights.length - 1] : week.pesoInicial;
+    }
+
+    function updateMotivationBox(weights, deltaPeso, deltaTalla) {
+      const box = document.getElementById("motivation-box");
+      const icon = document.getElementById("mot-icon");
+      const title = document.getElementById("mot-title");
+      const text = document.getElementById("mot-text");
+      const tag = document.getElementById("mot-tag");
+      const week = getCurrentWeek();
+
+      tag.textContent = week.title;
+
+      if (weights.length <= 1 && (week.pesoInicial === 0 || !week.pesoInicial)) {
+        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-slate-900 text-white border-slate-800";
+        icon.textContent = "⚙️";
+        title.textContent = "Configuración Inicial Pendiente";
+        title.className = "text-xs font-extrabold uppercase tracking-wider text-blue-400";
+        text.textContent = "Ingresa tus metas diarias de macros y tu peso/talla iniciales en la vista completa para activar el seguimiento analítico.";
+        return;
+      }
+
+      const pDelta = parseFloat(deltaPeso);
+      const tDelta = parseFloat(deltaTalla);
+
+      if (pDelta < 0 || tDelta < 0) {
+        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-emerald-950 text-emerald-100 border-emerald-800";
+        icon.textContent = "🔥";
+        title.textContent = "¡Vas con madre! El sistema funciona";
+        title.className = "text-xs font-extrabold uppercase tracking-wider text-emerald-400";
+        text.textContent = `Vas por buen camino. La báscula o la cinta marca descenso (${pDelta} Kg). No aflojes el paso, mantén el déficit y ejecuta la nivelación semanal sin pretextos.`;
+      } else if (pDelta === 0 && tDelta === 0) {
+        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-amber-950 text-amber-100 border-amber-800";
+        icon.textContent = "⚠️";
+        title.textContent = "Estancamiento detectado: Revisa tus porciones";
+        title.className = "text-xs font-extrabold uppercase tracking-wider text-amber-400";
+        text.textContent = "El peso y las tallas no se están moviendo. Si no bajas, no es culpa de la genética: o te estás pasando con las grasas ocultas o estás calculando mal los macros. Ajusta tu consumo diario.";
+      } else {
+        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-rose-950 text-rose-100 border-rose-800";
+        icon.textContent = "🚨";
+        title.textContent = "Alerta: Estás subiendo de peso o tallas";
+        title.className = "text-xs font-extrabold uppercase tracking-wider text-rose-400";
+        text.textContent = "Los números van hacia arriba. Sé honesto contigo mismo: ¿te saliste de la dieta este fin de semana o los carbos y grasas se fueron al cielo? Reajusta la base de inmediato.";
+      }
+    }
+
+    function renderQuickView() {
+      const week = getCurrentWeek();
+      const todayData = week.days[currentDayIndex] || week.days[0];
+
+      document.getElementById("quick-date-label").textContent = `${todayData.day} ${todayData.date || ''}`;
+      document.getElementById("quick-target-prot").textContent = `Meta: ${week.targetProt || 0}g`;
+      document.getElementById("quick-target-carb").textContent = `Meta: ${week.targetCarb || 0}g`;
+      document.getElementById("quick-target-fat").textContent = `Meta: ${week.targetFat || 0}g`;
+
+      document.getElementById("quick-peso").value = todayData.peso !== undefined ? todayData.peso : '';
+      document.getElementById("quick-prot").value = todayData.prot !== undefined ? todayData.prot : '';
+      document.getElementById("quick-carb").value = todayData.carb !== undefined ? todayData.carb : '';
+      document.getElementById("quick-fat").value = todayData.fat !== undefined ? todayData.fat : '';
+    }
+
+    function saveQuickData() {
+      const week = getCurrentWeek();
+      const p = document.getElementById("quick-peso").value;
+      const prot = document.getElementById("quick-prot").value;
+      const carb = document.getElementById("quick-carb").value;
+      const fat = document.getElementById("quick-fat").value;
+
+      week.days[currentDayIndex].peso = p !== "" ? parseFloat(p) : "";
+      week.days[currentDayIndex].prot = prot !== "" ? parseInt(prot) : "";
+      week.days[currentDayIndex].carb = carb !== "" ? parseInt(carb) : "";
+      week.days[currentDayIndex].fat = fat !== "" ? parseInt(fat) : "";
+
+      saveState();
+      alert("✅ Valores guardados correctamente.");
+    }
+
+    function renderTable() {
+      const week = getCurrentWeek();
+      if(week.tallaInicial === undefined) week.tallaInicial = 0;
+      if(week.tallaFinal === undefined) week.tallaFinal = 0;
+
+      document.getElementById("week-title").textContent =
