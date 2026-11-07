@@ -438,4 +438,218 @@
       if(week.tallaInicial === undefined) week.tallaInicial = 0;
       if(week.tallaFinal === undefined) week.tallaFinal = 0;
 
-      document.getElementById("week-title").textContent =
+      document.getElementById("week-title").textContent = week.title;
+      document.getElementById("target-prot").value = week.targetProt || '';
+      document.getElementById("target-carb").value = week.targetCarb || '';
+      document.getElementById("target-fat").value = week.targetFat || '';
+      document.getElementById("peso-inicial").value = week.pesoInicial || '';
+      document.getElementById("talla-inicial").value = week.tallaInicial || '';
+      document.getElementById("talla-final").value = week.tallaFinal || '';
+
+      const targetCal = ((week.targetProt || 0) * 4) + ((week.targetCarb || 0) * 4) + ((week.targetFat || 0) * 9);
+      document.getElementById("target-cal-display").textContent = `${targetCal} kcal`;
+
+      const container = document.getElementById("days-container");
+      container.innerHTML = "";
+
+      let totalProt = 0, totalCarb = 0, totalFat = 0, totalCal = 0;
+      let countDaysWithData = 0;
+      let weights = [];
+
+      week.days.forEach((day, index) => {
+        const p = parseFloat(day.prot) || 0;
+        const c = parseFloat(day.carb) || 0;
+        const f = parseFloat(day.fat) || 0;
+        const w = parseFloat(day.peso) || null;
+
+        const hasData = day.prot !== "" || day.carb !== "" || day.fat !== "";
+        if (hasData) countDaysWithData++;
+
+        const diffP = hasData ? (p - (week.targetProt || 0)) : 0;
+        const diffC = hasData ? (c - (week.targetCarb || 0)) : 0;
+        const diffF = hasData ? (f - (week.targetFat || 0)) : 0;
+
+        totalProt += p;
+        totalCarb += c;
+        totalFat += f;
+
+        const dayCal = (p * 4) + (c * 4) + (f * 9);
+        totalCal += dayCal;
+        if (w) weights.push(w);
+
+        const card = document.createElement("div");
+        card.className = "p-3 sm:p-4 hover:bg-slate-50/80 transition space-y-2";
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-900 text-sm sm:text-base">${day.day}</span>
+              <span class="text-[11px] text-slate-400">${day.date || ''}</span>
+            </div>
+            <div class="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">
+              <span class="text-[10px] font-bold text-slate-500 uppercase">Peso:</span>
+              <input type="number" step="0.1" value="${day.peso !== undefined ? day.peso : ''}" 
+                onfocus="this.select(); window.oldVal = this.value;" 
+                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'peso', this.value);" 
+                class="w-16 bg-white border border-slate-300 rounded px-1 py-0.5 text-center font-bold text-slate-800 text-xs macro-input">
+              <span class="text-[10px] text-slate-500">Kg</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <div class="bg-blue-50/40 p-2 rounded-lg border border-blue-100">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-[10px] font-bold text-blue-700">Prot (g)</span>
+                <span class="text-[10px] font-bold ${getDiffColorClass(diffP)}">${hasData ? formatDiff(diffP) : ''}</span>
+              </div>
+              <input type="number" value="${day.prot !== undefined ? day.prot : ''}" 
+                onfocus="this.select(); window.oldVal = this.value;" 
+                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'prot', this.value);" 
+                class="w-full bg-white border border-blue-200 rounded p-1.5 text-center font-bold text-blue-900 text-sm macro-input">
+            </div>
+
+            <div class="bg-amber-50/40 p-2 rounded-lg border border-amber-100">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-[10px] font-bold text-amber-700">Carbos (g)</span>
+                <span class="text-[10px] font-bold ${getDiffColorClass(diffC)}">${hasData ? formatDiff(diffC) : ''}</span>
+              </div>
+              <input type="number" value="${day.carb !== undefined ? day.carb : ''}" 
+                onfocus="this.select(); window.oldVal = this.value;" 
+                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'carb', this.value);" 
+                class="w-full bg-white border border-amber-200 rounded p-1.5 text-center font-bold text-amber-900 text-sm macro-input">
+            </div>
+
+            <div class="bg-emerald-50/40 p-2 rounded-lg border border-emerald-100">
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-[10px] font-bold text-emerald-700">Grasas (g)</span>
+                <span class="text-[10px] font-bold ${getDiffColorClass(diffF)}">${hasData ? formatDiff(diffF) : ''}</span>
+              </div>
+              <input type="number" value="${day.fat !== undefined ? day.fat : ''}" 
+                onfocus="this.select(); window.oldVal = this.value;" 
+                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'fat', this.value);" 
+                class="w-full bg-white border border-emerald-200 rounded p-1.5 text-center font-bold text-emerald-900 text-sm macro-input">
+            </div>
+          </div>
+          
+          <div class="flex justify-end text-[11px] text-slate-500 font-medium px-1">
+            Calorías del día: <span class="text-slate-800 font-bold ml-1">${dayCal > 0 ? dayCal + ' kcal' : '0 kcal'}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      const weeklyTargetProt = (week.targetProt || 0) * 7;
+      const weeklyTargetCarb = (week.targetCarb || 0) * 7;
+      const weeklyTargetFat = (week.targetFat || 0) * 7;
+
+      const nivP = totalProt - weeklyTargetProt;
+      const nivC = totalCarb - weeklyTargetCarb;
+      const nivF = totalFat - weeklyTargetFat;
+
+      document.getElementById("niv-prot").textContent = formatDiff(nivP);
+      document.getElementById("niv-carb").textContent = formatDiff(nivC);
+      document.getElementById("niv-fat").textContent = formatDiff(nivF);
+      document.getElementById("niv-cal").textContent = `${(nivP * 4) + (nivC * 4) + (nivF * 9)} kcal`;
+
+      const divisor = countDaysWithData > 0 ? countDaysWithData : 1;
+      const avgPeso = weights.length > 0 ? (weights.reduce((a, b) => a + b, 0) / weights.length).toFixed(1) : 0;
+
+      document.getElementById("prom-peso").textContent = `${avgPeso} Kg`;
+      document.getElementById("prom-cal").textContent = `${Math.round(totalCal / divisor)} kcal`;
+
+      const pesoFinal = weights.length > 0 ? weights[weights.length - 1] : (week.pesoInicial || 0);
+      const deltaPeso = week.pesoInicial ? (pesoFinal - week.pesoInicial).toFixed(1) : 0;
+      const deltaTalla = week.tallaInicial ? (week.tallaFinal - week.tallaInicial).toFixed(1) : 0;
+      
+      document.getElementById("peso-final-display").textContent = `${pesoFinal} Kg`;
+      document.getElementById("peso-delta-display").textContent = `${deltaPeso > 0 ? '+' : ''}${deltaPeso} Kg`;
+      document.getElementById("talla-delta-display").textContent = `${deltaTalla > 0 ? '+' : ''}${deltaTalla} cm`;
+      document.getElementById("res-peso-diff").textContent = `${deltaPeso > 0 ? '+' : ''}${deltaPeso} Kg`;
+
+      updateMotivationBox(weights, deltaPeso, deltaTalla);
+    }
+
+    function formatDiff(val) {
+      if (val === 0) return "0";
+      return val > 0 ? `+${val}` : `${val}`;
+    }
+
+    function getDiffColorClass(val) {
+      if (val === 0) return "text-slate-400";
+      return val > 0 ? "text-emerald-600" : "text-rose-600";
+    }
+
+    function updateDayData(index, key, val) {
+      const week = getCurrentWeek();
+      week.days[index][key] = val !== "" ? (key === 'peso' ? parseFloat(val) : parseInt(val)) : "";
+      saveState();
+    }
+
+    function updateTargets() {
+      const week = getCurrentWeek();
+      week.targetProt = parseInt(document.getElementById("target-prot").value) || 0;
+      week.targetCarb = parseInt(document.getElementById("target-carb").value) || 0;
+      week.targetFat = parseInt(document.getElementById("target-fat").value) || 0;
+      saveState();
+    }
+
+    function updateInitialWeight() {
+      const week = getCurrentWeek();
+      week.pesoInicial = parseFloat(document.getElementById("peso-inicial").value) || 0;
+      saveState();
+    }
+
+    function updateInitialTalla() {
+      const week = getCurrentWeek();
+      week.tallaInicial = parseFloat(document.getElementById("talla-inicial").value) || 0;
+      saveState();
+    }
+
+    function updateFinalTalla() {
+      const week = getCurrentWeek();
+      week.tallaFinal = parseFloat(document.getElementById("talla-final").value) || 0;
+      saveState();
+    }
+
+    function resetCurrentWeek() {
+      if (confirm("¿Seguro que deseas reiniciar los registros de esta semana?")) {
+        const week = getCurrentWeek();
+        week.days.forEach(d => { d.peso = ""; d.prot = ""; d.carb = ""; d.fat = ""; });
+        saveState();
+      }
+    }
+
+    function render() {
+      renderWeekSelect();
+      renderQuickView();
+      renderTable();
+    }
+
+    // Service Worker PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-container').classList.remove('hidden');
+    });
+
+    document.getElementById('btn-install')?.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('install-container').classList.add('hidden');
+        }
+        deferredPrompt = null;
+      } else {
+        alert("Para instalar en iPhone: Toca el botón 'Compartir' de Safari y selecciona 'Agregar a inicio'. En Android, usa el menú de los 3 puntos de Chrome y selecciona 'Instalar aplicación'.");
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
