@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MacroTracker & Nivelación Semanal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for horizontal table scrolling on small screens */
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-xl text-white">
+                    <i data-lucide="calculator" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">MacroTracker</h1>
+                    <p class="text-xs text-slate-400">Nivelación Semanal de Macronutrientes</p>
+                </div>
+            </div>
+
+            <!-- Selector de Semanas -->
+            <div class="flex items-center gap-2">
+                <div class="relative">
+                    <select id="weekSelect" onchange="switchWeek(this.value)" class="bg-slate-800 text-white border border-slate-700 text-sm font-semibold rounded-lg px-3 py-1.5 pr-8 focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none cursor-pointer">
+                        <!-- Options generated dynamically -->
+                    </select>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+                <button onclick="addNewWeek()" title="Nueva Semana" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
+
+        <!-- Banner de Encabezado de Semana Actual -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div>
+                <div class="flex items-center gap-3">
+                    <input type="text" id="weekNameInput" onchange="updateWeekTitle(this.value)" class="font-extrabold text-2xl text-slate-900 bg-transparent border-b border-dashed border-slate-300 focus:border-blue-500 focus:outline-none" value="Semana 0 Aprendizaje">
+                    <button class="text-slate-400 hover:text-slate-600" onclick="document.getElementById('weekNameInput').focus()">
+                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <p class="text-sm text-slate-500 mt-1">Registra tu consumo diario. Al final de la semana, la fila de nivelación te mostrará los macros exactos para estar al 100%.</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="duplicateCurrentWeek()" class="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Duplicar Semana
+                </button>
+                <button onclick="confirmResetWeek()" class="flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Limpiar Datos
+                </button>
+                <button onclick="confirmDeleteWeek()" id="deleteWeekBtn" class="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-red-600 hover:text-white text-slate-500 rounded-lg text-xs font-medium transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Eliminar
+                </button>
+            </div>
+        </div>
+
+        <!-- Grid Superior: Metas & Resumen de Peso -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Panel Izquierdo: Metas / Recalibración Base -->
+            <div class="lg:col-span-5 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="target" class="w-5 h-5 text-blue-600"></i>
+                            <h2 class="font-bold text-slate-800 text-base">Recalibración Base (Objetivos Diarios)</h2>
+                        </div>
+                        <span class="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">Meta Diaria</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3 mb-4">
+                        <!-- Proteína -->
+                        <div class="bg-blue-50/50 border border-blue-100 p-3 rounded-xl text-center">
+                            <label class="block text-xs font-semibold text-blue-900 mb-1">Proteína (g)</label>
+                            <input type="number" id="targetProtein" onchange="updateTargets()" class="w-full text-center font-bold text-slate-800 text-lg bg-white border border-blue-200 rounded-lg py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none" value="200">
+                            <span class="text-[10px] text-blue-600 mt-1 block" id="targetProteinKcal">800 kcal</span>
+                        </div>
+                        <!-- Carbohidrato -->
+                        <div class="bg-amber-50/50 border border-amber-100 p-3 rounded-xl text-center">
+                            <label class="block text-xs font-semibold text-amber-900 mb-1">Carbos (g)</label>
+                            <input type="number" id="targetCarbs" onchange="updateTargets()" class="w-full text-center font-bold text-slate-800 text-lg bg-white border border-amber-200 rounded-lg py-1 focus:ring-2 focus:ring-amber-500 focus:outline-none" value="220">
+                            <span class="text-[10px] text-amber-600 mt-1 block" id="targetCarbsKcal">880 kcal</span>
+                        </div>
+                        <!-- Grasa -->
+                        <div class="bg-emerald-50/50 border border-emerald-100 p-3 rounded-xl text-center">
+                            <label class="block text-xs font-semibold text-emerald-900 mb-1">Grasa (g)</label>
+                            <input type="number" id="targetFat" onchange="updateTargets()" class="w-full text-center font-bold text-slate-800 text-lg bg-white border border-emerald-200 rounded-lg py-1 focus:ring-2 focus:ring-emerald-500 focus:outline-none" value="85">
+                            <span class="text-[10px] text-emerald-600 mt-1 block" id="targetFatKcal">765 kcal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 text-white p-3.5 rounded-xl flex items-center justify-between mt-2">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+                        <span class="text-xs font-medium text-slate-300">Calorías Diarias Meta:</span>
+                    </div>
+                    <span id="targetCaloriesDisplay" class="font-extrabold text-lg text-amber-400">2445 kcal</span>
+                </div>
+            </div>
+
+            <!-- Panel Derecho: Valores Iniciales, Finales y Medidas -->
+            <div class="lg:col-span-7 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="scale" class="w-5 h-5 text-indigo-600"></i>
+                        <h2 class="font-bold text-slate-800 text-base">Control de Peso y Talla</h2>
+                    </div>
+                    <span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-full font-medium">Progreso Físico</span>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Peso Inicial -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="text-xs text-slate-500 font-medium block mb-1">Peso Inicial</span>
+                        <div class="flex items-center gap-1">
+                            <input type="number" step="0.1" id="initialWeight" onchange="updateWeightMetrics()" class="w-full font-bold text-slate-800 text-lg bg-transparent focus:outline-none border-b border-slate-300 focus:border-indigo-500" value="137.5">
+                            <span class="text-xs font-bold text-slate-400">Kg</span>
+                        </div>
+                    </div>
+
+                    <!-- Talla Inicial -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="text-xs text-slate-500 font-medium block mb-1">Talla Inicial</span>
+                        <div class="flex items-center gap-1">
+                            <input type="number" step="0.1" id="initialSize" onchange="updateWeightMetrics()" class="w-full font-bold text-slate-800 text-lg bg-transparent focus:outline-none border-b border-slate-300 focus:border-indigo-500" value="0.0">
+                            <span class="text-xs font-bold text-slate-400">cm</span>
+                        </div>
+                    </div>
+
+                    <!-- Peso Final -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="text-xs text-slate-500 font-medium block mb-1">Peso Final</span>
+                        <div class="flex items-center gap-1">
+                            <span id="finalWeightDisplay" class="w-full font-bold text-slate-800 text-lg">--</span>
+                            <span class="text-xs font-bold text-slate-400">Kg</span>
+                        </div>
+                    </div>
+
+                    <!-- Talla Final -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="text-xs text-slate-500 font-medium block mb-1">Talla Final</span>
+                        <div class="flex items-center gap-1">
+                            <input type="number" step="0.1" id="finalSize" onchange="updateWeightMetrics()" class="w-full font-bold text-slate-800 text-lg bg-transparent focus:outline-none border-b border-slate-300 focus:border-indigo-500" value="0.0">
+                            <span class="text-xs font-bold text-slate-400">cm</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Indicadores de Cambio -->
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div id="weightDiffCard" class="bg-blue-500 text-white p-3 rounded-xl flex items-center justify-between">
+                        <span class="text-xs font-medium">Diferencia de Peso:</span>
+                        <span id="weightDiffDisplay" class="font-extrabold text-base">-1.1 Kg</span>
+                    </div>
+                    <div id="sizeDiffCard" class="bg-blue-500 text-white p-3 rounded-xl flex items-center justify-between">
+                        <span class="text-xs font-medium">Diferencia Talla:</span>
+                        <span id="sizeDiffDisplay" class="font-extrabold text-base">0.0 cm</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Tabla Principal de Registro Diario -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-5 h-5 text-slate-700"></i>
+                    <h3 class="font-bold text-slate-800 text-base">Registro Diario y Nivelación</h3>
+                </div>
+                <span class="text-xs text-slate-500 hidden sm:inline">Modifica los valores diarios y revisa la fila amarilla de <b>Nivelación</b>.</span>
+            </div>
+
+            <!-- Table Responsive Wrapper -->
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead>
+                        <!-- Header Row 1 -->
+                        <tr class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wider border-b border-slate-200">
+                            <th class="py-3 px-3 font-semibold text-center w-24">Día</th>
+                            <th class="py-3 px-3 font-semibold text-center w-28">Fecha</th>
+                            <th class="py-3 px-3 font-semibold text-center w-28">Peso (Kg)</th>
+                            <th colspan="2" class="py-3 px-3 font-semibold text-center border-l border-slate-200 bg-blue-50/80 text-blue-900">Proteína</th>
+                            <th colspan="2" class="py-3 px-3 font-semibold text-center border-l border-slate-200 bg-amber-50/80 text-amber-900">Carbohidrato</th>
+                            <th colspan="2" class="py-3 px-3 font-semibold text-center border-l border-slate-200 bg-emerald-50/80 text-emerald-900">Grasa</th>
+                            <th class="py-3 px-3 font-semibold text-center border-l border-slate-200 bg-slate-200/60 text-slate-800">Calorías</th>
+                        </tr>
+                        <!-- Header Row 2 -->
+                        <tr class="bg-slate-50 text-[11px] text-slate-500 uppercase tracking-wider border-b border-slate-200 font-medium">
+                            <th class="py-2 px-2 text-center"></th>
+                            <th class="py-2 px-2 text-center"></th>
+                            <th class="py-2 px-2 text-center"></th>
+                            <th class="py-2 px-2 text-center border-l border-slate-200 bg-blue-50/40">Diario</th>
+                            <th class="py-2 px-2 text-center bg-blue-50/40 text-blue-700">¿Faltó/Sobró?</th>
+                            <th class="py-2 px-2 text-center border-l border-slate-200 bg-amber-50/40">Diario</th>
+                            <th class="py-2 px-2 text-center bg-amber-50/40 text-amber-700">¿Faltó/Sobró?</th>
+                            <th class="py-2 px-2 text-center border-l border-slate-200 bg-emerald-50/40">Diario</th>
+                            <th class="py-2 px-2 text-center bg-emerald-50/40 text-emerald-700">¿Faltó/Sobró?</th>
+                            <th class="py-2 px-2 text-center border-l border-slate-200">Consumidas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="daysTbody" class="divide-y divide-slate-200 text-sm">
+                        <!-- Rows injected dynamically (Lunes - Domingo) -->
+                    </tbody>
+                    <tfoot class="border-t-2 border-slate-300 font-semibold">
+                        <!-- Fila Nivelación (Amarilla) -->
+                        <tr class="bg-yellow-300 text-slate-900 font-bold border-b border-yellow-400">
+                            <td class="py-3 px-3 text-center">Nivelación</td>
+                            <td class="py-3 px-3 text-center text-xs text-yellow-900" id="nivelacionFecha">--</td>
+                            <td class="py-3 px-3 text-center bg-yellow-400/50 text-slate-400 cursor-not-allowed">
+                                <span class="text-xs">✕</span>
+                            </td>
+                            <!-- Proteína Nivelación -->
+                            <td class="py-3 px-3 text-center border-l border-yellow-400" id="nivProtDiario">-310</td>
+                            <td class="py-3 px-3 text-center" id="nivProtBal">--</td>
+                            <!-- Carbs Nivelación -->
+                            <td class="py-3 px-3 text-center border-l border-yellow-400" id="nivCarbDiario">-402</td>
+                            <td class="py-3 px-3 text-center" id="nivCarbBal">--</td>
+                            <!-- Grasa Nivelación -->
+                            <td class="py-3 px-3 text-center border-l border-yellow-400" id="nivFatDiario">-13</td>
+                            <td class="py-3 px-3 text-center" id="nivFatBal">--</td>
+                            <!-- Calorías Nivelación -->
+                            <td class="py-3 px-3 text-center border-l border-yellow-400 text-slate-900" id="nivCalories">0</td>
+                        </tr>
+
+                        <!-- Fila Promedios -->
+                        <tr class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                            <td class="py-2.5 px-3 text-center font-bold" colspan="2">Promedio</td>
+                            <td class="py-2.5 px-3 text-center" id="avgWeight">--</td>
+                            <td class="py-2.5 px-3 text-center border-l border-slate-200" id="avgProt">0</td>
+                            <td class="py-2.5 px-3 text-center" id="avgProtDiff">0</td>
+                            <td class="py-2.5 px-3 text-center border-l border-slate-200" id="avgCarb">0</td>
+                            <td class="py-2.5 px-3 text-center" id="avgCarbDiff">0</td>
+                            <td class="py-2.5 px-3 text-center border-l border-slate-200" id="avgFat">0</td>
+                            <td class="py-2.5 px-3 text-center" id="avgFatDiff">0</td>
+                            <td class="py-2.5 px-3 text-center border-l border-slate-200" id="avgCalories">0</td>
+                        </tr>
+
+                        <!-- Fila Resultados Totales / Promedio Real -->
+                        <tr class="bg-slate-800 text-white font-bold">
+                            <td class="py-3 px-3 text-center" colspan="2">Resultado Final</td>
+                            <td class="py-3 px-3 text-center bg-blue-600 text-white" id="resWeightDiff">-1.1 Kg</td>
+                            <td class="py-3 px-3 text-center border-l border-slate-700 text-blue-300" colspan="2" id="resProt">136 g</td>
+                            <td class="py-3 px-3 text-center border-l border-slate-700 text-amber-300" colspan="2" id="resCarb">142 g</td>
+                            <td class="py-3 px-3 text-center border-l border-slate-700 text-emerald-300" colspan="2" id="resFat">73 g</td>
+                            <td class="py-3 px-3 text-center border-l border-slate-700 text-amber-400" id="resCalories">1702 kcal</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Guía Explicativa / Información -->
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 sm:p-5 text-blue-950 flex items-start gap-3">
+            <i data-lucide="info" class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5"></i>
+            <div class="text-xs sm:text-sm leading-relaxed space-y-1">
+                <p class="font-bold">¿Cómo funciona la fila de Nivelación?</p>
+                <p>La fila de <strong>Nivelación (en amarillo)</strong> calcula la diferencia exacta entre lo que has consumido en la semana y el total que deberías consumir en los 7 días completos (Meta diaria × 7). Si un día consumiste menos, aquí verás la cantidad exacta que debes compensar el domingo para cerrar la semana habiendo cumplido al 100% tus macros calibrados.</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Personalizado para Mensajes de Alerta/Confirmación -->
+    <div id="customModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 transform transition-all">
+            <h3 id="modalTitle" class="font-bold text-lg text-slate-900 mb-2">Título</h3>
+            <p id="modalMessage" class="text-sm text-slate-600 mb-6">Mensaje del modal...</p>
+            <div class="flex items-center justify-end gap-3" id="modalActions">
+                <!-- Action buttons injected via script -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Days of week default template
+        const DAYS_NAMES = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo'];
+
+        // Sample Data matching user's spreadsheet for default "Semana 0"
+        const DEFAULT_SEMANA_0 = {
+            id: 'semana-0',
+            title: 'Semana 0 Aprendizaje',
+            targets: { protein: 200, carbs: 220, fat: 85 },
+            initialWeight: 137.5,
+            initialSize: 0.0,
+            finalSize: 0.0,
+            days: [
+                { day: 'Lunes', date: '02/11/2026', weight: 137.5, protein: 200, carbs: 220, fat: 85 },
+                { day: 'Martes', date: '03/11/2026', weight: 137.5, protein: 200, carbs: 220, fat: 85 },
+                { day: 'Miercoles', date: '04/11/2026', weight: 137.5, protein: 200, carbs: 220, fat: 85 },
+                { day: 'Jueves', date: '05/11/2026', weight: 137.5, protein: 167, carbs: 227, fat: 135 },
+                { day: 'Viernes', date: '06/11/2026', weight: 136.7, protein: 181, carbs: 143, fat: 114 },
+                { day: 'Sabado', date: '07/11/2026', weight: 136.4, protein: 142, carbs: 108, fat: 78 },
+                { day: 'Domingo', date: '08/11/2026', weight: null, protein: null, carbs: null, fat: null }
+            ]
+        };
+
+        const DEFAULT_SEMANA_1 = {
+            id: 'semana-1',
+            title: 'Semana 1',
+            targets: { protein: 200, carbs: 220, fat: 85 },
+            initialWeight: 136.4,
+            initialSize: 0.0,
+            finalSize: 0.0,
+            days: [
+                { day: 'Lunes', date: '09/11/2026', weight: null, protein: null, carbs: null, fat: null },
+                { day: 'Martes', date: '10/11/2026', weight: null, protein: null, carbs: null, fat: null },
+                { day: 'Miercoles', date: '11/11/2026', weight: null, protein: null, carbs: null, fat: null },
+                { day: 'Jueves', date: '12/11/2026', weight: null, protein: null, carbs: null, fat: null },
+                { day: 'Viernes', date: '13/11/2026', weight: null, protein: null, carbs: null, fat: null },
+                { day: 'Sabado', date: '14/11/2026', weight: null, protein: null, carbs: null, fat: null },
+                { day: 'Domingo', date: '15/11/2026', weight: null, protein: null, carbs: null, fat: null }
+            ]
+        };
+
+        // State Store
+        let appState = {
+            activeWeekId: 'semana-0',
+            weeks: [DEFAULT_SEMANA_0, DEFAULT_SEMANA_1]
+        };
+
+        // Initialize Application
+        window.onload = function() {
+            loadStateFromLocalStorage();
+            renderWeekSelector();
+            renderCurrentWeek();
+            lucide.createIcons();
+        };
+
+        // --- LOCAL STORAGE HELPERS ---
+        function saveStateToLocalStorage() {
+            try {
+                localStorage.setItem('macrotracker_app_state', JSON.stringify(appState));
+            } catch (e) {
+                console.error('No se pudo guardar en LocalStorage', e);
+            }
+        }
+
+        function loadStateFromLocalStorage() {
+            const saved = localStorage.getItem('macrotracker_app_state');
+            if (saved) {
+                try {
+                    appState = JSON.parse(saved);
+                } catch (e) {
+                    console.error('Error al parsear estado local', e);
+                }
+            }
+        }
+
+        function getCurrentWeek() {
+            let week = appState.weeks.find(w => w.id === appState.activeWeekId);
+            if (!week) {
+                week = appState.weeks[0];
+                appState.activeWeekId = week.id;
+            }
+            return week;
+        }
+
+        // --- RENDER FUNCTIONS ---
+        function renderWeekSelector() {
+            const select = document.getElementById('weekSelect');
+            select.innerHTML = '';
+            appState.weeks.forEach(w => {
+                const opt = document.createElement('option');
+                opt.value = w.id;
+                opt.textContent = w.title;
+                if (w.id === appState.activeWeekId) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            // Update Delete Button state (don't delete if only 1 week remains)
+            const deleteBtn = document.getElementById('deleteWeekBtn');
+            if (appState.weeks.length <= 1) {
+                deleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                deleteBtn.disabled = true;
+            } else {
+                deleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                deleteBtn.disabled = false;
+            }
+        }
+
+        function renderCurrentWeek() {
+            const week = getCurrentWeek();
+
+            // Set Title & Inputs
+            document.getElementById('weekNameInput').value = week.title;
+            document.getElementById('targetProtein').value = week.targets.protein;
+            document.getElementById('targetCarbs').value = week.targets.carbs;
+            document.getElementById('targetFat').value = week.targets.fat;
+
+            document.getElementById('initialWeight').value = week.initialWeight ?? '';
+            document.getElementById('initialSize').value = week.initialSize ?? 0;
+            document.getElementById('finalSize').value = week.finalSize ?? 0;
+
+            renderTableDays(week);
+            recalculateAll();
+        }
+
+        function renderTableDays(week) {
+            const tbody = document.getElementById('daysTbody');
+            tbody.innerHTML = '';
+
+            week.days.forEach((d, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = idx % 2 === 0 ? 'bg-white hover:bg-slate-50/80 transition-colors' : 'bg-slate-50/50 hover:bg-slate-100/50 transition-colors';
+
+                tr.innerHTML = `
+                    <td class="py-2 px-3 text-center font-medium text-slate-800">${d.day}</td>
+                    <td class="py-2 px-2 text-center">
+                        <input type="text" value="${d.date || ''}" onchange="updateDayValue(${idx}, 'date', this.value)" class="w-full text-center text-xs bg-transparent border-b border-transparent hover:border-slate-300 focus:border-blue-500 focus:outline-none text-slate-600" placeholder="DD/MM/AAAA">
+                    </td>
+                    <td class="py-2 px-2 text-center">
+                        <input type="number" step="0.1" value="${d.weight !== null && d.weight !== undefined ? d.weight : ''}" onchange="updateDayValue(${idx}, 'weight', this.value)" class="w-full text-center font-semibold text-slate-800 bg-transparent border border-slate-200 rounded-md py-1 focus:ring-1 focus:ring-blue-500 focus:outline-none" placeholder="-">
+                    </td>
+                    <!-- Proteína Diario -->
+                    <td class="py-2 px-2 text-center border-l border-slate-200">
+                        <input type="number" value="${d.protein !== null && d.protein !== undefined ? d.protein : ''}" onchange="updateDayValue(${idx}, 'protein', this.value)" class="w-full text-center font-bold text-blue-900 bg-blue-50/30 border border-blue-200 rounded-md py-1 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="0">
+                    </td>
+                    <!-- Proteína Balance -->
+                    <td class="py-2 px-2 text-center text-xs font-semibold" id="protDiff_${idx}">0</td>
+                    <!-- Carbs Diario -->
+                    <td class="py-2 px-2 text-center border-l border-slate-200">
+                        <input type="number" value="${d.carbs !== null && d.carbs !== undefined ? d.carbs : ''}" onchange="updateDayValue(${idx}, 'carbs', this.value)" class="w-full text-center font-bold text-amber-900 bg-amber-50/30 border border-amber-200 rounded-md py-1 focus:ring-2 focus:ring-amber-500 focus:outline-none" placeholder="0">
+                    </td>
+                    <!-- Carbs Balance -->
+                    <td class="py-2 px-2 text-center text-xs font-semibold" id="carbDiff_${idx}">0</td>
+                    <!-- Fat Diario -->
+                    <td class="py-2 px-2 text-center border-l border-slate-200">
+                        <input type="number" value="${d.fat !== null && d.fat !== undefined ? d.fat : ''}" onchange="updateDayValue(${idx}, 'fat', this.value)" class="w-full text-center font-bold text-emerald-900 bg-emerald-50/30 border border-emerald-200 rounded-md py-1 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="0">
+                    </td>
+                    <!-- Fat Balance -->
+                    <td class="py-2 px-2 text-center text-xs font-semibold" id="fatDiff_${idx}">0</td>
+                    <!-- Calorías Totales Día -->
+                    <td class="py-2 px-2 text-center font-bold text-slate-700 border-l border-slate-200" id="dayCalories_${idx}">0</td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- CALCULATION LOGIC ---
+        function recalculateAll() {
+            const week = getCurrentWeek();
+            const targetP = Number(week.targets.protein) || 0;
+            const targetC = Number(week.targets.carbs) || 0;
+            const targetF = Number(week.targets.fat) || 0;
+
+            // Target Kcal Calculations
+            const targetP_kcal = targetP * 4;
+            const targetC_kcal = targetC * 4;
+            const targetF_kcal = targetF * 9;
+            const totalTargetKcal = targetP_kcal + targetC_kcal + targetF_kcal;
+
+            document.getElementById('targetProteinKcal').textContent = `${targetP_kcal} kcal`;
+            document.getElementById('targetCarbsKcal').textContent = `${targetC_kcal} kcal`;
+            document.getElementById('targetFatKcal').textContent = `${targetF_kcal} kcal`;
+            document.getElementById('targetCaloriesDisplay').textContent = `${totalTargetKcal} kcal`;
+
+            // Daily Calculations & Totals Accumulator
+            let sumP = 0, sumC = 0, sumF = 0;
+            let sumDiffP = 0, sumDiffC = 0, sumDiffF = 0;
+            let totalCaloriesSum = 0;
+            
+            let countP = 0, countC = 0, countF = 0, countDaysRecorded = 0;
+            let lastRecordedWeight = null;
+            let firstRecordedWeight = week.initialWeight !== null && week.initialWeight !== undefined ? Number(week.initialWeight) : null;
+            let weightSum = 0, weightCount = 0;
+
+            week.days.forEach((d, idx) => {
+                const hasP = d.protein !== null && d.protein !== '' && !isNaN(d.protein);
+                const hasC = d.carbs !== null && d.carbs !== '' && !isNaN(d.carbs);
+                const hasF = d.fat !== null && d.fat !== '' && !isNaN(d.fat);
+
+                const valP = hasP ? Number(d.protein) : 0;
+                const valC = hasC ? Number(d.carbs) : 0;
+                const valF = hasF ? Number(d.fat) : 0;
+
+                // Differences (Consumido - Meta)
+                const diffP = hasP ? (valP - targetP) : 0;
+                const diffC = hasC ? (valC - targetC) : 0;
+                const diffF = hasF ? (valF - targetF) : 0;
+
+                // Calories for day
+                const dayKcal = (valP * 4) + (valC * 4) + (valF * 9);
+
+                // UI elements update per row
+                const pDiffEl = document.getElementById(`protDiff_${idx}`);
+                const cDiffEl = document.getElementById(`carbDiff_${idx}`);
+                const fDiffEl = document.getElementById(`fatDiff_${idx}`);
+                const calEl = document.getElementById(`dayCalories_${idx}`);
+
+                if (pDiffEl) updateDiffCell(pDiffEl, diffP, hasP);
+                if (cDiffEl) updateDiffCell(cDiffEl, diffC, hasC);
+                if (fDiffEl) updateDiffCell(fDiffEl, diffF, hasF);
+                if (calEl) calEl.textContent = (hasP || hasC || hasF) ? Math.round(dayKcal) : '0';
+
+                // Accumulate totals
+                if (hasP) { sumP += valP; sumDiffP += diffP; countP++; }
+                if (hasC) { sumC += valC; sumDiffC += diffC; countC++; }
+                if (hasF) { sumF += valF; sumDiffF += diffF; countF++; }
+                if (hasP || hasC || hasF) { totalCaloriesSum += dayKcal; countDaysRecorded++; }
+
+                // Weight Tracking
+                if (d.weight !== null && d.weight !== '' && !isNaN(d.weight)) {
+                    const wVal = Number(d.weight);
+                    lastRecordedWeight = wVal;
+                    weightSum += wVal;
+                    weightCount++;
+                }
+            });
+
+            // Nivelación Row Logic
+            // Formula from Excel: Target Total for Week (Target * 7) - Sum Consumed
+            const targetWeeklyP = targetP * 7;
+            const targetWeeklyC = targetC * 7;
+            const targetWeeklyF = targetF * 7;
+
+            // Nivelación values = Consumed so far - Total Weekly Goal (or Goal - Consumed depending on view)
+            // Excel sheet shows: Nivelación = Consumido Total - Meta 7 Días
+            const nivP = sumP - targetWeeklyP;
+            const nivC = sumC - targetWeeklyC;
+            const nivF = sumF - targetWeeklyF;
+
+            document.getElementById('nivProtDiario').textContent = nivP > 0 ? `+${nivP}` : `${nivP}`;
+            document.getElementById('nivCarbDiario').textContent = nivC > 0 ? `+${nivC}` : `${nivC}`;
+            document.getElementById('nivFatDiario').textContent = nivF > 0 ? `+${nivF}` : `${nivF}`;
+
+            // Nivelación Fecha (Domingo Date)
+            const sundayDate = week.days[6]?.date || 'Domingo';
+            document.getElementById('nivelacionFecha').textContent = sundayDate;
+
+            // Averages Row
+            const avgP = countP > 0 ? Math.round(sumP / countP) : 0;
+            const avgC = countC > 0 ? Math.round(sumC / countC) : 0;
+            const avgF = countF > 0 ? Math.round(sumF / countF) : 0;
+
+            const avgDiffP = countP > 0 ? Math.round(sumDiffP / countP) : 0;
+            const avgDiffC = countC > 0 ? Math.round(sumDiffC / countC) : 0;
+            const avgDiffF = countF > 0 ? Math.round(sumDiffF / countF) : 0;
+            const avgKcal = countDaysRecorded > 0 ? Math.round(totalCaloriesSum / countDaysRecorded) : 0;
+            const avgW = weightCount > 0 ? (weightSum / weightCount).toFixed(1) : '--';
+
+            document.getElementById('avgProt').textContent = avgP;
+            document.getElementById('avgCarb').textContent = avgC;
+            document.getElementById('avgFat').textContent = avgF;
+
+            updateDiffCell(document.getElementById('avgProtDiff'), avgDiffP, countP > 0);
+            updateDiffCell(document.getElementById('avgCarbDiff'), avgDiffC, countC > 0);
+            updateDiffCell(document.getElementById('avgFatDiff'), avgDiffF, countF > 0);
+
+            document.getElementById('avgCalories').textContent = avgKcal;
+            document.getElementById('avgWeight').textContent = avgW !== '--' ? `${avgW} Kg` : '--';
+
+            // Result Row (Matches Excel: Real Averages and Weight Difference)
+            document.getElementById('resProt').textContent = `${avgP} g`;
+            document.getElementById('resCarb').textContent = `${avgC} g`;
+            document.getElementById('resFat').textContent = `${avgF} g`;
+            document.getElementById('resCalories').textContent = `${avgKcal} kcal`;
+
+            // Weight & Size Summary Updates
+            updateWeightMetrics(lastRecordedWeight);
+            
+            // Save state
+            saveStateToLocalStorage();
+        }
+
+        function updateDiffCell(el, diff, hasValue) {
+            if (!hasValue) {
+                el.textContent = '0';
+                el.className = 'py-2 px-2 text-center text-xs font-semibold text-slate-400';
+                return;
+            }
+            if (diff === 0) {
+                el.textContent = '0';
+                el.className = 'py-2 px-2 text-center text-xs font-semibold text-slate-600';
+            } else if (diff > 0) {
+                el.textContent = `+${diff}`;
+                el.className = 'py-2 px-2 text-center text-xs font-bold text-amber-600 bg-amber-50/50';
+            } else {
+                el.textContent = `${diff}`;
+                el.className = 'py-2 px-2 text-center text-xs font-bold text-blue-600 bg-blue-50/50';
+            }
+        }
+
+        function updateWeightMetrics(computedFinalWeight = null) {
+            const week = getCurrentWeek();
+            const initW = parseFloat(document.getElementById('initialWeight').value);
+            const initS = parseFloat(document.getElementById('initialSize').value);
+            const finalS = parseFloat(document.getElementById('finalSize').value);
+
+            week.initialWeight = isNaN(initW) ? null : initW;
+            week.initialSize = isNaN(initS) ? 0 : initS;
+            week.finalSize = isNaN(finalS) ? 0 : finalS;
+
+            // Determine final weight (either last input in table or computed)
+            let finalW = null;
+            if (computedFinalWeight !== null) {
+                finalW = computedFinalWeight;
+            } else {
+                for (let i = week.days.length - 1; i >= 0; i--) {
+                    if (week.days[i].weight !== null && week.days[i].weight !== '' && !isNaN(week.days[i].weight)) {
+                        finalW = Number(week.days[i].weight);
+                        break;
+                    }
+                }
+            }
+
+            document.getElementById('finalWeightDisplay').textContent = finalW !== null ? finalW.toFixed(1) : (week.initialWeight !== null ? week.initialWeight.toFixed(1) : '--');
+
+            // Diff Weight
+            const wDiffDisplay = document.getElementById('weightDiffDisplay');
+            const resWeightDiff = document.getElementById('resWeightDiff');
+            const wDiffCard = document.getElementById('weightDiffCard');
+
+            if (initW !== null && !isNaN(initW) && finalW !== null) {
+                const diffW = (finalW - initW).toFixed(1);
+                const text = diffW > 0 ? `+${diffW} Kg` : `${diffW} Kg`;
+                wDiffDisplay.textContent = text;
+                if (resWeightDiff) resWeightDiff.textContent = text;
+
+                if (diffW < 0) {
+                    wDiffCard.className = 'bg-blue-600 text-white p-3 rounded-xl flex items-center justify-between shadow-sm';
+                } else if (diffW > 0) {
+                    wDiffCard.className = 'bg-amber-600 text-white p-3 rounded-xl flex items-center justify-between shadow-sm';
+                } else {
+                    wDiffCard.className = 'bg-slate-700 text-white p-3 rounded-xl flex items-center justify-between shadow-sm';
+                }
+            } else {
+                wDiffDisplay.textContent = '0.0 Kg';
+                if (resWeightDiff) resWeightDiff.textContent = '0.0 Kg';
+                wDiffCard.className = 'bg-blue-600 text-white p-3 rounded-xl flex items-center justify-between shadow-sm';
+            }
+
+            // Diff Size
+            const sizeDiffDisplay = document.getElementById('sizeDiffDisplay');
+            if (!isNaN(initS) && !isNaN(finalS)) {
+                const diffS = (finalS - initS).toFixed(1);
+                sizeDiffDisplay.textContent = diffS > 0 ? `+${diffS} cm` : `${diffS} cm`;
+            } else {
+                sizeDiffDisplay.textContent = '0.0 cm';
+            }
+        }
+
+        // --- EVENT HANDLERS & UPDATES ---
+        function updateDayValue(index, field, value) {
+            const week = getCurrentWeek();
+            if (field === 'date') {
+                week.days[index].date = value;
+            } else {
+                const num = value === '' ? null : Number(value);
+                week.days[index][field] = num;
+            }
+            recalculateAll();
+        }
+
+        function updateTargets() {
+            const week = getCurrentWeek();
+            week.targets.protein = Number(document.getElementById('targetProtein').value) || 0;
+            week.targets.carbs = Number(document.getElementById('targetCarbs').value) || 0;
+            week.targets.fat = Number(document.getElementById('targetFat').value) || 0;
+            recalculateAll();
+        }
+
+        function updateWeekTitle(newTitle) {
+            if (!newTitle.trim()) return;
+            const week = getCurrentWeek();
+            week.title = newTitle.trim();
+            renderWeekSelector();
+            saveStateToLocalStorage();
+        }
+
+        function switchWeek(weekId) {
+            appState.activeWeekId = weekId;
+            renderCurrentWeek();
+            renderWeekSelector();
+        }
+
+        function addNewWeek() {
+            const nextIndex = appState.weeks.length;
+            const lastWeek = appState.weeks[appState.weeks.length - 1];
+            
+            // Auto calculate initial weight from last week final weight if available
+            let lastWeight = 0;
+            if (lastWeek) {
+                for (let i = lastWeek.days.length - 1; i >= 0; i--) {
+                    if (lastWeek.days[i].weight) {
+                        lastWeight = lastWeek.days[i].weight;
+                        break;
+                    }
+                }
+                if (!lastWeight) lastWeight = lastWeek.initialWeight || 0;
+            }
+
+            const newWeek = {
+                id: `semana-${Date.now()}`,
+                title: `Semana ${nextIndex}`,
+                targets: lastWeek ? { ...lastWeek.targets } : { protein: 200, carbs: 220, fat: 85 },
+                initialWeight: lastWeight,
+                initialSize: lastWeek ? lastWeek.initialSize : 0,
+                finalSize: 0,
+                days: DAYS_NAMES.map(dayName => ({
+                    day: dayName,
+                    date: '',
+                    weight: null,
+                    protein: null,
+                    carbs: null,
+                    fat: null
+                }))
+            };
+
+            appState.weeks.push(newWeek);
+            appState.activeWeekId = newWeek.id;
+            renderWeekSelector();
+            renderCurrentWeek();
+            saveStateToLocalStorage();
+        }
+
+        function duplicateCurrentWeek() {
+            const current = getCurrentWeek();
+            const duplicated = JSON.parse(JSON.stringify(current));
+            duplicated.id = `semana-${Date.now()}`;
+            duplicated.title = `${current.title} (Copia)`;
+
+            appState.weeks.push(duplicated);
+            appState.activeWeekId = duplicated.id;
+            renderWeekSelector();
+            renderCurrentWeek();
+            saveStateToLocalStorage();
+        }
+
+        function confirmResetWeek() {
+            showModal(
+                'Limpiar registros de la semana',
+                '¿Estás seguro de que deseas borrar los valores diarios consumidos de esta semana? Los objetivos se mantendrán.',
+                [
+                    { label: 'Cancelar', class: 'px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium', onClick: closeModal },
+                    { label: 'Sí, limpiar', class: 'px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium', onClick: resetCurrentWeek }
+                ]
+            );
+        }
+
+        function resetCurrentWeek() {
+            const week = getCurrentWeek();
+            week.days.forEach(d => {
+                d.weight = null;
+                d.protein = null;
+                d.carbs = null;
+                d.fat = null;
+            });
+            closeModal();
+            renderCurrentWeek();
+        }
+
+        function confirmDeleteWeek() {
+            if (appState.weeks.length <= 1) return;
+            const week = getCurrentWeek();
+            showModal(
+                'Eliminar semana',
+                `¿Estás seguro de eliminar permanentemente la "${week.title}"?`,
+                [
+                    { label: 'Cancelar', class: 'px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium', onClick: closeModal },
+                    { label: 'Eliminar', class: 'px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg text-sm font-medium', onClick: deleteCurrentWeek }
+                ]
+            );
+        }
+
+        function deleteCurrentWeek() {
+            const idx = appState.weeks.findIndex(w => w.id === appState.activeWeekId);
+            if (idx !== -1) {
+                appState.weeks.splice(idx, 1);
+                appState.activeWeekId = appState.weeks[Math.max(0, idx - 1)].id;
+                closeModal();
+                renderWeekSelector();
+                renderCurrentWeek();
+            }
+        }
+
+        // --- CUSTOM MODAL DIALOG ---
+        function showModal(title, message, buttons) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            const actionsDiv = document.getElementById('modalActions');
+            actionsDiv.innerHTML = '';
+
+            buttons.forEach(btn => {
+                const b = document.createElement('button');
+                b.textContent = btn.label;
+                b.className = btn.class;
+                b.onclick = btn.onClick;
+                actionsDiv.appendChild(b);
+            });
+
+            document.getElementById('customModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
