@@ -27,10 +27,10 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-16 font-sans">
 
-  <!-- Botón de instalación PWA -->
-  <div id="install-container" class="hidden bg-blue-600 text-white p-3 text-xs md:text-sm flex justify-between items-center sticky top-0 z-50 shadow-md">
-    <span class="font-medium">🚀 Instala esta app en tu pantalla de inicio.</span>
-    <button id="btn-install" class="bg-white text-blue-700 hover:bg-blue-50 font-bold px-3 py-1.5 rounded-lg text-xs ml-2 shrink-0 transition shadow-sm">
+  <!-- Barra de Instalación Manual Visible Siempre -->
+  <div id="install-container" class="hidden bg-blue-700 text-white px-4 py-2.5 text-xs md:text-sm flex justify-between items-center sticky top-0 z-50 shadow-md">
+    <span class="font-medium">🚀 ¡Lleva esta app a tu pantalla de inicio!</span>
+    <button id="btn-install" class="bg-white text-blue-800 hover:bg-blue-50 font-bold px-3 py-1.5 rounded-lg text-xs ml-2 shrink-0 transition shadow-sm">
       Instalar App
     </button>
   </div>
@@ -55,8 +55,8 @@
       </div>
     </header>
 
-    <!-- Selector de Modo (Registro Rápido vs Vista Completa) -->
-    <div class="bg-slate-200 p-1 rounded-xl flex gap-1 text-sm font-bold">
+    <!-- Pestañas de Navegación (Siempre Visibles) -->
+    <div class="bg-slate-200 p-1 rounded-xl flex gap-1 text-sm font-bold shadow-inner">
       <button id="tab-quick" onclick="setMode('quick')" class="flex-1 py-2 text-center rounded-lg bg-blue-600 text-white shadow-sm transition">
         ⚡ Registro Rápido
       </button>
@@ -65,7 +65,21 @@
       </button>
     </div>
 
-    <!-- VISTA 1: CAPTURA RÁPIDA (MODO WIDGET) -->
+    <!-- PANEL DE REALIDAD / MENSAJE MOTIVACIONAL O CRÍTICO -->
+    <div id="motivation-box" class="p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-slate-900 text-white border-slate-800">
+      <span id="mot-icon" class="text-2xl">🔥</span>
+      <div class="space-y-1 flex-1">
+        <div class="flex justify-between items-center">
+          <h4 id="mot-title" class="text-xs font-extrabold uppercase tracking-wider text-blue-400">Análisis de Desempeño</h4>
+          <span id="mot-tag" class="text-[10px] bg-blue-900/80 px-2 py-0.5 rounded text-blue-200 font-bold">Semana 0</span>
+        </div>
+        <p id="mot-text" class="text-xs md:text-sm text-slate-200 font-medium leading-relaxed">
+          Cargando análisis de tus registros...
+        </p>
+      </div>
+    </div>
+
+    <!-- VISTA 1: CAPTURA RÁPIDA -->
     <div id="view-quick" class="space-y-4">
       <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
         <div class="flex justify-between items-center border-b pb-3">
@@ -79,7 +93,6 @@
         </div>
 
         <div class="space-y-3">
-          <!-- Peso -->
           <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
             <label class="block text-xs font-bold text-slate-700 mb-1">Peso del Día (Kg)</label>
             <input type="number" step="0.1" id="quick-peso" 
@@ -88,7 +101,6 @@
               class="w-full bg-white border border-slate-300 rounded-lg p-2 text-base font-bold text-slate-900 text-center outline-none macro-input" placeholder="0.0">
           </div>
 
-          <!-- Proteína -->
           <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-200">
             <div class="flex justify-between text-xs font-bold text-blue-800 mb-1">
               <span>Proteína (g)</span>
@@ -100,7 +112,6 @@
               class="w-full bg-white border border-blue-300 rounded-lg p-2 text-base font-bold text-blue-900 text-center outline-none macro-input" placeholder="0">
           </div>
 
-          <!-- Carbohidratos -->
           <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-200">
             <div class="flex justify-between text-xs font-bold text-amber-800 mb-1">
               <span>Carbohidratos (g)</span>
@@ -112,7 +123,6 @@
               class="w-full bg-white border border-amber-300 rounded-lg p-2 text-base font-bold text-amber-900 text-center outline-none macro-input" placeholder="0">
           </div>
 
-          <!-- Grasas -->
           <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-200">
             <div class="flex justify-between text-xs font-bold text-emerald-800 mb-1">
               <span>Grasas (g)</span>
@@ -131,15 +141,13 @@
       </div>
 
       <button onclick="setMode('full')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
-        📊 VER TABLA COMPLETA Y NIVELACIÓN
+        📊 IR A VISTA COMPLETA Y NIVELACIÓN
       </button>
     </div>
 
     <!-- VISTA 2: TABLERO COMPLETO -->
     <div id="view-full" class="hidden space-y-4">
-      <!-- Panel de Metas y Resumen Superior -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Metas Diarias -->
         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
           <h3 class="font-bold text-slate-900 text-sm flex items-center justify-between border-b pb-2">
             <span>⚙️ Metas Diarias (Recalibración)</span>
@@ -161,7 +169,6 @@
           </div>
         </div>
 
-        <!-- Resumen Peso y Talla (Semanal) -->
         <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
           <h3 class="font-bold text-slate-900 text-sm border-b pb-2">📊 Control de Peso y Talla</h3>
           <div class="grid grid-cols-2 gap-2 text-xs">
@@ -203,7 +210,6 @@
 
         <div id="days-container" class="divide-y divide-slate-100"></div>
 
-        <!-- Totales y Nivelación Footer -->
         <div class="bg-slate-50 p-4 border-t-2 border-slate-200 space-y-3 text-xs">
           <div class="bg-yellow-100/90 p-3 rounded-lg border border-yellow-200 space-y-2">
             <div class="font-bold text-slate-900 flex justify-between items-center">
@@ -247,6 +253,10 @@
           </div>
         </div>
       </div>
+
+      <button onclick="setMode('quick')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
+        ⚡ VOLVER A REGISTRO RÁPIDO
+      </button>
     </div>
 
   </div>
@@ -281,7 +291,7 @@
     };
 
     let appState = JSON.parse(localStorage.getItem("macroTrackerState")) || DEFAULT_DATA;
-    let currentDayIndex = 5; // Por defecto Sábado (0=Lun ... 5=Sab)
+    let currentDayIndex = 5; // Sábado por defecto
 
     function setMode(mode) {
       const qView = document.getElementById("view-quick");
@@ -300,6 +310,7 @@
         fTab.className = "flex-1 py-2 text-center rounded-lg bg-blue-600 text-white shadow-sm transition font-bold";
         qTab.className = "flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition font-bold";
       }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function saveState() {
@@ -354,6 +365,52 @@
     function getPesoFinal(week) {
       const filledWeights = week.days.map(d => parseFloat(d.peso)).filter(p => !isNaN(p) && p > 0);
       return filledWeights.length > 0 ? filledWeights[filledWeights.length - 1] : week.pesoInicial;
+    }
+
+    function updateMotivationBox(weights, deltaPeso, deltaTalla) {
+      const box = document.getElementById("motivation-box");
+      const icon = document.getElementById("mot-icon");
+      const title = document.getElementById("mot-title");
+      const text = document.getElementById("mot-text");
+      const tag = document.getElementById("mot-tag");
+      const week = getCurrentWeek();
+
+      tag.textContent = week.title;
+
+      if (weights.length <= 1) {
+        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-slate-900 text-white border-slate-800";
+        icon.textContent = "⚙️";
+        title.textContent = "Fase de Calibración Inicial";
+        title.className = "text-xs font-extrabold uppercase tracking-wider text-blue-400";
+        text.textContent = "Estás registrando tu semana base. Mantén la consistencia en los macros y el peso para ver el comportamiento real de tu metabolismo.";
+        return;
+      }
+
+      const pDelta = parseFloat(deltaPeso);
+      const tDelta = parseFloat(deltaTalla);
+
+      if (pDelta < 0 || tDelta < 0) {
+        // Estás bajando
+        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-emerald-950 text-emerald-100 border-emerald-800";
+        icon.textContent = "🔥";
+        title.textContent = "¡Vas con madre! El sistema funciona";
+        title.className = "text-xs font-extrabold uppercase tracking-wider text-emerald-400";
+        text.textContent = `Vas por buen camino. La báscula o la cinta marca descenso (${pDelta} Kg). No aflojes el paso, mantén el déficit y ejecuta la nivelación semanal sin pretextos.`;
+      } else if (pDelta === 0 && tDelta === 0) {
+        // Estancado
+        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-amber-950 text-amber-100 border-amber-800";
+        icon.textContent = "⚠️";
+        title.textContent = "Estancamiento detectado: Revisa tus porciones";
+        title.className = "text-xs font-extrabold uppercase tracking-wider text-amber-400";
+        text.textContent = "El peso y las tallas no se están moviendo. Si no bajas, no es culpa de la genética: o te estás pasando con las grasas ocultas o estás calculando mal los macros. Ajusta tu consumo diario.";
+      } else {
+        // Subiendo
+        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-rose-950 text-rose-100 border-rose-800";
+        icon.textContent = "🚨";
+        title.textContent = "Alerta: Estás subiendo de peso o tallas";
+        title.className = "text-xs font-extrabold uppercase tracking-wider text-rose-400";
+        text.textContent = "Los números van hacia arriba. Sé honesto contigo mismo: ¿te saliste de la dieta este fin de semana o los carbos y grasas se fueron al cielo? Reajusta la base de inmediato.";
+      }
     }
 
     function renderQuickView() {
@@ -518,6 +575,8 @@
       document.getElementById("peso-delta-display").textContent = `${deltaPeso > 0 ? '+' : ''}${deltaPeso} Kg`;
       document.getElementById("talla-delta-display").textContent = `${deltaTalla > 0 ? '+' : ''}${deltaTalla} cm`;
       document.getElementById("res-peso-diff").textContent = `${deltaPeso > 0 ? '+' : ''}${deltaPeso} Kg`;
+
+      updateMotivationBox(weights, deltaPeso, deltaTalla);
     }
 
     function formatDiff(val) {
@@ -596,6 +655,8 @@
           document.getElementById('install-container').classList.add('hidden');
         }
         deferredPrompt = null;
+      } else {
+        alert("Para instalar en iPhone: Toca el botón 'Compartir' de Safari y selecciona 'Agregar a inicio'. En Android, si el botón no responde, usa el menú de los 3 puntos de Chrome y selecciona 'Instalar aplicación' o 'Agregar a pantalla principal'.");
       }
     });
 
