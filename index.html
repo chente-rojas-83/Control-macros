@@ -192,4 +192,40 @@
 
           <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-200">
             <div class="flex justify-between text-xs font-bold text-amber-800 mb-1">
-              <span>
+              <span>Carbohidratos (g)</span>
+              <span id="quick-target-carb" class="text-amber-600 font-normal">Meta: 0g</span>
+            </div>
+            <input type="number" id="quick-carb" 
+              onfocus="this.select(); window.oldVal = this.value;" 
+              onblur="if(this.value==='') this.value = window.oldVal;"
+              class="w-full bg-white border border-amber-300 rounded-lg p-2 text-base font-bold text-amber-900 text-center outline-none macro-input" placeholder="0">
+          </div>
+
+          <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-200">
+            <div class="flex justify-between text-xs font-bold text-emerald-800 mb-1">
+              <span>Grasas (g)</span>
+              <span id="quick-target-fat" class="text-emerald-600 font-normal">Meta: 0g</span>
+            </div>
+            <input type="number" id="quick-fat" 
+              onfocus="this.select(); window.oldVal = this.value;" 
+              onblur="if(this.value==='') this.value = window.oldVal;"
+              class="w-full bg-white border border-emerald-300 rounded-lg p-2 text-base font-bold text-emerald-900 text-center outline-none macro-input" placeholder="0">
+          </div>
+        </div>
+
+        <button onclick="saveQuickData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition text-sm">
+          GUARDAR VALORES DE HOY
+        </button>
+      </div>
+
+      <button onclick="setMode('full')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
+        📊 IR A VISTA COMPLETA Y NIVELACIÓN
+      </button>
+    </div>
+
+    <!-- VISTA 2: TABLERO COMPLETO -->
+    <div id="view-full" class="hidden space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        <!-- Apartado 1: Metas Diarias Editables -->
+        <div class="bg
