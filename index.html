@@ -5,15 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Control de Macros Semanal</title>
   
+  <!-- Configuración de Tema y PWA general -->
   <meta name="theme-color" content="#2563eb">
   <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Configuración EXCLUSIVA y obligatoria para iOS (iPhone/iPad) -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Macros">
+  <link rel="apple-touch-icon" href="./icon.png">
 
   <link rel="manifest" href="./manifest.json">
   <link rel="icon" href="./icon.png">
-  <link rel="apple-touch-icon" href="./icon.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -27,7 +30,7 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen pb-16 font-sans">
 
-  <!-- Barra de Instalación Manual Visible Siempre -->
+  <!-- Barra de Instalación Manual (Visible en Android/PC si aplica) -->
   <div id="install-container" class="hidden bg-blue-700 text-white px-4 py-2.5 text-xs md:text-sm flex justify-between items-center sticky top-0 z-50 shadow-md">
     <span class="font-medium">🚀 ¡Lleva esta app a tu pantalla de inicio!</span>
     <button id="btn-install" class="bg-white text-blue-800 hover:bg-blue-50 font-bold px-3 py-1.5 rounded-lg text-xs ml-2 shrink-0 transition shadow-sm">
@@ -283,7 +286,7 @@
     };
 
     let appState = JSON.parse(localStorage.getItem("macroTrackerStateClean")) || CLEAN_DATA;
-    let currentDayIndex = 0; // Lunes por defecto
+    let currentDayIndex = 0;
 
     function setMode(mode) {
       const qView = document.getElementById("view-quick");
@@ -624,7 +627,6 @@
       renderTable();
     }
 
-    // Service Worker PWA
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
