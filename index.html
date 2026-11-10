@@ -25,7 +25,7 @@
     .macro-input:focus { transform: scale(1.02); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4); }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen pb-12 font-sans select-none">
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-10 font-sans select-none">
 
   <!-- Barra de Instalación PWA -->
   <div id="install-container" class="hidden bg-blue-700 text-white px-3 py-2 text-xs flex justify-between items-center sticky top-0 z-50 shadow-md">
@@ -232,7 +232,7 @@
       }
     };
 
-    let STORAGE_KEY = "macroTrackerSafeFlowV1";
+    let STORAGE_KEY = "macroTrackerSafeFlowV3";
     let savedRaw = localStorage.getItem(STORAGE_KEY);
     let appState = CLEAN_DATA;
     
@@ -406,21 +406,21 @@
               <input type="number" value="${day.prot !== undefined ? day.prot : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
                 onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'prot', this.value);" 
-                class="w-full bg-white border border-blue-200 rounded p-1 text-center font-bold text-slate-900 text-xs macro-input">
+                class="w-full bg-white border border-blue-200 rounded p-1 text-center font-bold text-blue-900 text-xs macro-input">
             </div>
             <div class="bg-amber-50/50 p-1 rounded border border-amber-100 text-center">
               <span class="text-[8px] font-bold text-amber-700 block uppercase leading-none mb-1">Carb (g)</span>
               <input type="number" value="${day.carb !== undefined ? day.carb : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
                 onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'carb', this.value);" 
-                class="w-full bg-white border border-amber-200 rounded p-1 text-center font-bold text-slate-900 text-xs macro-input">
+                class="w-full bg-white border border-amber-300 rounded p-1 text-center font-bold text-amber-900 text-xs macro-input">
             </div>
             <div class="bg-emerald-50/50 p-1 rounded border border-emerald-100 text-center">
               <span class="text-[8px] font-bold text-emerald-700 block uppercase leading-none mb-1">Grasa (g)</span>
               <input type="number" value="${day.fat !== undefined ? day.fat : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
                 onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'fat', this.value);" 
-                class="w-full bg-white border border-emerald-200 rounded p-1 text-center font-bold text-slate-900 text-xs macro-input">
+                class="w-full bg-white border border-emerald-200 rounded p-1 text-center font-bold text-emerald-900 text-xs macro-input">
             </div>
           </div>
         `;
@@ -468,4 +468,114 @@
 
       const pAvg = document.getElementById("table-avg-prot").textContent;
       const cAvg = document.getElementById("table-avg-carb").textContent;
-      const fAvg = document.getElementById("table-avg-fat").textContent
+      const fAvg = document.getElementById("table-avg-fat").textContent;
+      const calAvg = document.getElementById("table-avg-cal").textContent;
+
+      const pNiv = document.getElementById("table-niv-prot").textContent;
+      const cNiv = document.getElementById("table-niv-carb").textContent;
+      const fNiv = document.getElementById("table-niv-fat").textContent;
+      const calNiv = document.getElementById("table-niv-cal").textContent;
+
+      const pInit = week.pesoInicial || 0;
+      const pFin = document.getElementById("peso-final-display").textContent;
+
+      const textToCopy = `📊 RESUMEN MACROS - ${week.title}
+----------------------------------
+🎯 METAS DIARIAS:
+- Prot: ${pMeta}g | Carb: ${cMeta}g | Grasa: ${fMeta}g (${calMeta} kcal)
+
+📈 PROMEDIO REAL/DÍA:
+- Prot: ${pAvg} | Carb: ${cAvg} | Grasa: ${fAvg} (${calAvg} kcal/día)
+
+⚠️ NIVELACIÓN SEMANAL:
+- Prot: ${pNiv} | Carb: ${cNiv} | Grasa: ${fNiv} (${calNiv})
+
+⚖️ PROGRESO CORPORAL:
+- Peso Inicial: ${pInit} Kg | Peso Actual: ${pFin}`;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        alert("📋 Resumen copiado al portapapeles exitosamente.");
+      }).catch(() => {
+        alert("No se pudo copiar automáticamente.");
+      });
+    }
+
+    function updateDayData(index, key, val) {
+      const week = getCurrentWeek();
+      if (!week) return;
+      week.days[index][key] = val !== "" ? (key === 'peso' ? parseFloat(val) : parseInt(val)) : "";
+      saveState();
+    }
+
+    function updateTargets() {
+      const week = getCurrentWeek();
+      if (!week) return;
+      week.targetProt = parseInt(document.getElementById("target-prot").value) || 0;
+      week.targetCarb = parseInt(document.getElementById("target-carb").value) || 0;
+      week.targetFat = parseInt(document.getElementById("target-fat").value) || 0;
+      saveState();
+    }
+
+    function updateInitialWeight() {
+      const week = getCurrentWeek();
+      if (!week) return;
+      week.pesoInicial = parseFloat(document.getElementById("peso-inicial").value) || 0;
+      saveState();
+    }
+
+    function updateInitialTalla() {
+      const week = getCurrentWeek();
+      if (!week) return;
+      week.tallaInicial = parseFloat(document.getElementById("talla-inicial").value) || 0;
+      saveState();
+    }
+
+    function updateFinalTalla() {
+      const week = getCurrentWeek();
+      if (!week) return;
+      week.tallaFinal = parseFloat(document.getElementById("talla-final").value) || 0;
+      saveState();
+    }
+
+    function resetCurrentWeek() {
+      if (confirm("¿Reiniciar registros de esta semana?")) {
+        const week = getCurrentWeek();
+        week.days.forEach(d => { d.peso = ""; d.prot = ""; d.carb = ""; d.fat = ""; });
+        saveState();
+      }
+    }
+
+    function render() {
+      renderWeekSelect();
+      renderTable();
+    }
+
+    // Blindaje anti-pantalla en blanco al cargar
+    document.addEventListener("DOMContentLoaded", () => {
+      render();
+    });
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-container').classList.remove('hidden');
+    });
+
+    document.getElementById('btn-install')?.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          document.getElementById('install-container').classList.add('hidden');
+        }
+        deferredPrompt = null;
+      }
+    });
+  </script>
+</body>
+</html>
