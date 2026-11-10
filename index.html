@@ -43,10 +43,10 @@
         <button onclick="closeSummaryModal()" class="text-slate-400 font-bold text-base px-1">✕</button>
       </div>
 
-      <!-- Texto formateado listo para copiar -->
+      <!-- Texto formateado listo para copiar con saltos de línea claros -->
       <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
         <div class="font-bold text-slate-800">Vista Previa del Mensaje:</div>
-        <textarea id="summary-text-box" readonly class="w-full h-48 bg-white border border-slate-300 rounded-lg p-2.5 font-mono text-[11px] text-slate-700 outline-none resize-none"></textarea>
+        <textarea id="summary-text-box" readonly class="w-full h-56 bg-white border border-slate-300 rounded-lg p-2.5 font-mono text-[11px] text-slate-700 outline-none resize-none"></textarea>
       </div>
 
       <!-- BOTONES DE ACCIÓN DEL MODAL -->
@@ -167,8 +167,15 @@
       </div>
     </div>
 
-    <!-- APARTADO 2: CAPTURA DIARIA CON FECHAS REALES -->
-    <div id="days-container" class="space-y-2"></div>
+    <!-- PESTAÑAS DE NAVEGACIÓN RÁPIDA ENTRE DÍAS -->
+    <div id="day-tabs-container" class="grid grid-cols-7 gap-1 bg-slate-200 p-1 rounded-xl">
+      <!-- Se llena dinámicamente -->
+    </div>
+
+    <!-- APARTADO 2: CAPTURA DEL DÍA SELECCIONADO -->
+    <div id="single-day-container" class="space-y-2">
+      <!-- Se llena dinámicamente según el tab activo -->
+    </div>
 
     <!-- BOTÓN CERRAR SEMANA INFERIOR -->
     <button onclick="openCloseWeekModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-1">
@@ -200,6 +207,7 @@
     }
 
     const currentDates = getCurrentWeekDates();
+    let activeDayTab = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
 
     const CLEAN_DATA = {
       activeWeekId: "week_1",
@@ -215,7 +223,7 @@
       }
     };
 
-    let STORAGE_KEY = "macroTrackerFullViewV4";
+    let STORAGE_KEY = "macroTrackerFullViewTabsV1";
     let savedRaw = localStorage.getItem(STORAGE_KEY);
     let appState = CLEAN_DATA;
     
@@ -340,6 +348,11 @@
       return filledWeights.length > 0 ? filledWeights[filledWeights.length - 1] : (week.pesoInicial || 0);
     }
 
+    function switchDayTab(index) {
+      activeDayTab = index;
+      renderTable();
+    }
+
     function renderTable() {
       const week = getCurrentWeek();
       if (!week) return;
@@ -354,64 +367,75 @@
       const targetCal = ((week.targetProt || 0) * 4) + ((week.targetCarb || 0) * 4) + ((week.targetFat || 0) * 9);
       document.getElementById("target-cal-display").textContent = `${targetCal} kcal`;
 
-      const container = document.getElementById("days-container");
+      // Renderizar Tabs de Días
+      const tabsContainer = document.getElementById("day-tabs-container");
+      tabsContainer.innerHTML = "";
+      DAYS_NAMES.forEach((name, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = name.substring(0, 3);
+        btn.onclick = () => switchDayTab(index);
+        btn.className = `py-1.5 text-center rounded-lg text-[11px] font-bold transition ${index === activeDayTab ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}`;
+        tabsContainer.appendChild(btn);
+      });
+
+      // Renderizar Día Activo Seleccionado
+      const container = document.getElementById("single-day-container");
       container.innerHTML = "";
 
-      const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+      const day = week.days[activeDayTab] || week.days[0];
+      const p = parseFloat(day.prot) || 0;
+      const c = parseFloat(day.carb) || 0;
+      const f = parseFloat(day.fat) || 0;
+      const dayCal = (p * 4) + (c * 4) + (f * 9);
 
-      week.days.forEach((day, index) => {
-        const p = parseFloat(day.prot) || 0;
-        const c = parseFloat(day.carb) || 0;
-        const f = parseFloat(day.fat) || 0;
-        const dayCal = (p * 4) + (c * 4) + (f * 9);
+      const card = document.createElement("div");
+      card.className = `bg-white p-3 rounded-xl border border-blue-500 shadow-sm transition flex flex-col justify-between`;
+      card.innerHTML = `
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-slate-900 text-sm">${day.day}</span>
+            <span class="text-xs text-blue-600 font-bold">${day.date || ''}</span>
+          </div>
+          <div class="text-xs text-slate-600 font-semibold">
+            Calorías: <b class="text-slate-900">${dayCal} kcal</b>
+          </div>
+        </div>
 
-        const card = document.createElement("div");
-        card.className = `bg-white p-2.5 rounded-xl border shadow-sm transition flex flex-col justify-between ${index === todayIndex ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200'}`;
-        card.innerHTML = `
-          <div class="flex justify-between items-center mb-1">
-            <div class="flex items-center gap-1.5">
-              <span class="font-extrabold text-slate-900 text-xs">${day.day}</span>
-              <span class="text-[10px] text-slate-400 font-medium">${day.date || ''}</span>
-              ${index === todayIndex ? '<span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-bold">HOY</span>' : ''}
-            </div>
-            <div class="text-[10px] text-slate-500 font-semibold">
-              Calorías: <b class="text-slate-900">${dayCal} kcal</b>
-            </div>
+        <div class="space-y-2">
+          <div class="bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+            <span class="text-[9px] font-bold text-slate-500 block uppercase mb-1">Peso del Día (Kg)</span>
+            <input type="number" step="0.1" value="${day.peso !== undefined ? day.peso : ''}" 
+              onfocus="this.select(); window.oldVal = this.value;" 
+              onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${activeDayTab}, 'peso', this.value);" 
+              class="w-full bg-white border border-slate-300 rounded p-1.5 text-center font-bold text-slate-900 text-sm macro-input">
           </div>
 
-          <div class="grid grid-cols-4 gap-1.5">
-            <div class="bg-slate-50 p-1 rounded border border-slate-200 text-center">
-              <span class="text-[8px] font-bold text-slate-500 block uppercase leading-none mb-1">Peso (Kg)</span>
-              <input type="number" step="0.1" value="${day.peso !== undefined ? day.peso : ''}" 
-                onfocus="this.select(); window.oldVal = this.value;" 
-                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'peso', this.value);" 
-                class="w-full bg-white border border-slate-300 rounded p-1 text-center font-bold text-slate-900 text-xs macro-input">
-            </div>
-            <div class="bg-blue-50/50 p-1 rounded border border-blue-100 text-center">
-              <span class="text-[8px] font-bold text-blue-700 block uppercase leading-none mb-1">Proteína (g)</span>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="bg-blue-50/50 p-1.5 rounded-lg border border-blue-100 text-center">
+              <span class="text-[9px] font-bold text-blue-700 block uppercase mb-1">Proteína (g)</span>
               <input type="number" value="${day.prot !== undefined ? day.prot : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
-                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'prot', this.value);" 
-                class="w-full bg-white border border-blue-200 rounded p-1 text-center font-bold text-blue-900 text-xs macro-input">
+                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${activeDayTab}, 'prot', this.value);" 
+                class="w-full bg-white border border-blue-200 rounded p-1.5 text-center font-bold text-blue-900 text-sm macro-input">
             </div>
-            <div class="bg-amber-50/50 p-1 rounded border border-amber-100 text-center">
-              <span class="text-[8px] font-bold text-amber-700 block uppercase leading-none mb-1">Carbos (g)</span>
+            <div class="bg-amber-50/50 p-1.5 rounded-lg border border-amber-100 text-center">
+              <span class="text-[9px] font-bold text-amber-700 block uppercase mb-1">Carbos (g)</span>
               <input type="number" value="${day.carb !== undefined ? day.carb : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
-                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'carb', this.value);" 
-                class="w-full bg-white border border-amber-300 rounded p-1 text-center font-bold text-amber-900 text-xs macro-input">
+                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${activeDayTab}, 'carb', this.value);" 
+                class="w-full bg-white border border-amber-300 rounded p-1.5 text-center font-bold text-amber-900 text-sm macro-input">
             </div>
-            <div class="bg-emerald-50/50 p-1 rounded border border-emerald-100 text-center">
-              <span class="text-[8px] font-bold text-emerald-700 block uppercase leading-none mb-1">Grasas (g)</span>
+            <div class="bg-emerald-50/50 p-1.5 rounded-lg border border-emerald-100 text-center">
+              <span class="text-[9px] font-bold text-emerald-700 block uppercase mb-1">Grasas (g)</span>
               <input type="number" value="${day.fat !== undefined ? day.fat : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
-                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'fat', this.value);" 
-                class="w-full bg-white border border-emerald-200 rounded p-1 text-center font-bold text-emerald-900 text-xs macro-input">
+                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${activeDayTab}, 'fat', this.value);" 
+                class="w-full bg-white border border-emerald-200 rounded p-1.5 text-center font-bold text-emerald-900 text-sm macro-input">
             </div>
           </div>
-        `;
-        container.appendChild(card);
-      });
+        </div>
+      `;
+      container.appendChild(card);
 
       const pesoFinal = getPesoFinal(week);
       document.getElementById("peso-final-display").textContent = `${pesoFinal} Kg`;
@@ -450,7 +474,7 @@
       const tallaFin = week.tallaFinal || 0;
 
       let text = `📊 RESUMEN GENERAL - ${week.title}\n`;
-      text += `----------------------------------\n`;
+      text += `----------------------------------\n\n`;
       text += `🎯 BASE DE MACROS (METAS DIARIAS):\n`;
       text += `- Proteína: ${pMeta}g\n`;
       text += `- Carbohidratos: ${cMeta}g\n`;
@@ -474,7 +498,9 @@
         const df = d.fat !== "" ? `${d.fat}g` : `0g`;
         const dw = d.peso !== "" ? `${d.peso} Kg` : `Sin peso`;
         const dCal = (parseFloat(d.prot || 0) * 4) + (parseFloat(d.carb || 0) * 4) + (parseFloat(d.fat || 0) * 9);
-        text += `• ${d.day} (${d.date}): Peso: ${dw} | Prot: ${dp}, Carb: ${dc}, Grasa: ${df} (${dCal} kcal)\n`;
+        
+        text += `• ${d.day} (${d.date})\n`;
+        text += `  Peso: ${dw} | Prot: ${dp} | Carb: ${dc} | Grasa: ${df} (${dCal} kcal)\n\n`;
       });
 
       document.getElementById("summary-text-box").value = text;
