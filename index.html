@@ -25,7 +25,7 @@
     .macro-input:focus { transform: scale(1.02); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4); }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen pb-10 font-sans select-none">
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-12 font-sans select-none">
 
   <!-- Barra de Instalación PWA -->
   <div id="install-container" class="hidden bg-blue-700 text-white px-3 py-2 text-xs flex justify-between items-center sticky top-0 z-50 shadow-md">
@@ -35,97 +35,24 @@
     </button>
   </div>
 
-  <!-- MODAL: RESUMEN Y TABLA COPIABLE -->
+  <!-- MODAL: RESUMEN TOTAL COMPLETO Y COPIABLE -->
   <div id="summary-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-4 space-y-3 max-h-[92vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-4 space-y-3 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-extrabold text-slate-900 text-xs flex items-center gap-1.5">📊 Resumen Semanal Copiable</h3>
+        <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">📊 Resumen Completo para Compartir</h3>
         <button onclick="closeSummaryModal()" class="text-slate-400 font-bold text-base px-1">✕</button>
       </div>
 
-      <!-- Configuración rápida de Metas y Mediciones -->
+      <!-- Texto formateado listo para copiar -->
       <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
-        <div class="font-bold text-slate-800 flex justify-between items-center">
-          <span>⚙️ Objetivos y Medidas Base</span>
-          <span id="target-cal-display" class="text-blue-600 font-extrabold">0 kcal</span>
-        </div>
-        <div class="grid grid-cols-3 gap-2">
-          <div>
-            <label class="block font-bold text-blue-700 text-[9px] uppercase mb-0.5">Prot (g)</label>
-            <input type="number" id="target-prot" onchange="updateTargets()" class="w-full bg-white border border-blue-200 rounded p-1 text-center font-bold text-xs outline-none">
-          </div>
-          <div>
-            <label class="block font-bold text-amber-700 text-[9px] uppercase mb-0.5">Carb (g)</label>
-            <input type="number" id="target-carb" onchange="updateTargets()" class="w-full bg-white border border-amber-200 rounded p-1 text-center font-bold text-xs outline-none">
-          </div>
-          <div>
-            <label class="block font-bold text-emerald-700 text-[9px] uppercase mb-0.5">Grasa (g)</label>
-            <input type="number" id="target-fat" onchange="updateTargets()" class="w-full bg-white border border-emerald-200 rounded p-1 text-center font-bold text-xs outline-none">
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2 pt-1.5 border-t border-slate-200">
-          <div>
-            <label class="text-[9px] text-slate-500 block mb-0.5">Peso Ini / Fin (Kg):</label>
-            <div class="flex gap-1">
-              <input type="number" step="0.1" id="peso-inicial" onchange="updateInitialWeight()" class="w-1/2 bg-white border rounded p-1 text-center font-bold text-xs">
-              <span id="peso-final-display" class="w-1/2 bg-slate-200 rounded p-1 text-center font-bold text-xs leading-none flex items-center justify-center text-slate-800">0</span>
-            </div>
-          </div>
-          <div>
-            <label class="text-[9px] text-slate-500 block mb-0.5">Talla Ini / Fin (cm):</label>
-            <div class="flex gap-1">
-              <input type="number" step="0.1" id="talla-inicial" onchange="updateInitialTalla()" class="w-1/2 bg-white border rounded p-1 text-center font-bold text-xs">
-              <input type="number" step="0.1" id="talla-final" onchange="updateFinalTalla()" class="w-1/2 bg-white border rounded p-1 text-center font-bold text-xs">
-            </div>
-          </div>
-        </div>
+        <div class="font-bold text-slate-800">Vista Previa del Mensaje:</div>
+        <textarea id="summary-text-box" readonly class="w-full h-48 bg-white border border-slate-300 rounded-lg p-2.5 font-mono text-[11px] text-slate-700 outline-none resize-none"></textarea>
       </div>
 
-      <!-- TABLA RESUMEN COPIABLE -->
-      <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="bg-slate-800 text-white font-bold text-[10px] uppercase">
-              <th class="p-2">Métrica</th>
-              <th class="p-2 text-center">Prot</th>
-              <th class="p-2 text-center">Carb</th>
-              <th class="p-2 text-center">Grasa</th>
-              <th class="p-2 text-right">Kcal</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 text-xs">
-            <tr class="bg-blue-50/50">
-              <td class="p-2 font-bold text-blue-900">Meta Diaria</td>
-              <td id="table-target-prot" class="p-2 text-center">0g</td>
-              <td id="table-target-carb" class="p-2 text-center">0g</td>
-              <td id="table-target-fat" class="p-2 text-center">0g</td>
-              <td id="table-target-cal" class="p-2 text-right font-bold text-blue-900">0</td>
-            </tr>
-            <tr>
-              <td class="p-2 font-bold">Prom. Real/Día</td>
-              <td id="table-avg-prot" class="p-2 text-center text-blue-700">0g</td>
-              <td id="table-avg-carb" class="p-2 text-center text-amber-700">0g</td>
-              <td id="table-avg-fat" class="p-2 text-center text-emerald-700">0g</td>
-              <td id="table-avg-cal" class="p-2 text-right font-bold">0</td>
-            </tr>
-            <tr class="bg-yellow-50/60">
-              <td class="p-2 font-bold text-amber-900">Nivelación Sem.</td>
-              <td id="table-niv-prot" class="p-2 text-center">0</td>
-              <td id="table-niv-carb" class="p-2 text-center">0</td>
-              <td id="table-niv-fat" class="p-2 text-center">0</td>
-              <td id="table-niv-cal" class="p-2 text-right font-bold text-amber-900">0</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- BOTONES DE ACCIÓN -->
+      <!-- BOTONES DE ACCIÓN DEL MODAL -->
       <div class="flex gap-2 pt-1">
         <button onclick="copySummaryText()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow transition flex items-center justify-center gap-1">
-          📋 Copiar Resumen
-        </button>
-        <button onclick="resetCurrentWeek()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold px-3 py-2.5 rounded-xl text-xs border border-rose-200">
-          Reiniciar
+          📋 Copiar Resumen al Portapapeles
         </button>
         <button onclick="closeSummaryModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow">
           Cerrar
@@ -141,10 +68,10 @@
         <h3 class="font-extrabold text-slate-900 text-xs">✨ Configurar Nueva Semana</h3>
         <button onclick="closeNewWeekModal()" class="text-slate-400 font-bold text-sm">✕</button>
       </div>
-      <p class="text-xs text-slate-500">Ingresa tus metas para esta semana:</p>
+      <p class="text-xs text-slate-500">Ingresa tus macros objetivo para esta semana:</p>
       <div class="grid grid-cols-3 gap-2 text-xs">
-        <div><label class="block font-bold text-blue-700 text-[9px] uppercase">Prot (g)</label><input type="number" id="modal-prot" class="w-full bg-blue-50/50 border rounded p-1.5 text-center font-bold" placeholder="200"></div>
-        <div><label class="block font-bold text-amber-700 text-[9px] uppercase">Carbs (g)</label><input type="number" id="modal-carb" class="w-full bg-amber-50/50 border rounded p-1.5 text-center font-bold" placeholder="220"></div>
+        <div><label class="block font-bold text-blue-700 text-[9px] uppercase">Proteína (g)</label><input type="number" id="modal-prot" class="w-full bg-blue-50/50 border rounded p-1.5 text-center font-bold" placeholder="200"></div>
+        <div><label class="block font-bold text-amber-700 text-[9px] uppercase">Carbos (g)</label><input type="number" id="modal-carb" class="w-full bg-amber-50/50 border rounded p-1.5 text-center font-bold" placeholder="220"></div>
         <div><label class="block font-bold text-emerald-700 text-[9px] uppercase">Grasas (g)</label><input type="number" id="modal-fat" class="w-full bg-emerald-50/50 border rounded p-1.5 text-center font-bold" placeholder="85"></div>
       </div>
       <div class="bg-slate-50 p-2 rounded text-[11px] flex justify-between border border-slate-200">
@@ -175,33 +102,72 @@
     </div>
   </div>
 
-  <!-- MAIN CONTAINER -->
-  <div class="max-w-md mx-auto w-full space-y-2 p-2">
+  <!-- MAIN CONTAINER UNIFICADO -->
+  <div class="max-w-xl mx-auto w-full space-y-3 p-3">
     
-    <!-- Header Principal Compacto -->
+    <!-- Header Principal -->
     <header class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center gap-2">
       <div class="flex items-center gap-2">
         <span class="text-2xl">⚖️</span>
         <div>
           <h1 class="text-xs font-extrabold text-slate-900 leading-tight">Control de Macros</h1>
-          <select id="week-select" onchange="switchWeek(this.value)" class="bg-slate-50 border border-slate-300 text-slate-900 font-bold text-xs rounded px-1 py-0.5 outline-none mt-0.5">
+          <select id="week-select" onchange="switchWeek(this.value)" class="bg-slate-50 border border-slate-300 text-slate-900 font-bold text-xs rounded px-1.5 py-0.5 outline-none mt-0.5">
           </select>
         </div>
       </div>
       <div class="flex items-center gap-1.5">
-        <button onclick="openSummaryModal()" class="bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs px-2.5 py-1.5 rounded-lg border border-blue-200 flex items-center gap-1 transition">
+        <button onclick="openSummaryModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow-sm transition flex items-center gap-1">
           📊 Resumen
         </button>
-        <button onclick="openNewWeekModal()" class="bg-blue-600 text-white font-bold text-xs px-2.5 py-1.5 rounded-lg shadow-sm transition">
+        <button onclick="openNewWeekModal()" class="bg-slate-100 hover:bg-slate-200 text-blue-700 font-bold text-xs px-2.5 py-2 rounded-lg border border-slate-300 transition" title="Nueva Semana">
           +
         </button>
-        <button onclick="deleteCurrentWeek()" class="bg-rose-50 text-rose-700 font-bold text-xs px-2 py-1.5 rounded-lg border border-rose-200" title="Eliminar semana">
+        <button onclick="deleteCurrentWeek()" class="bg-rose-50 text-rose-700 font-bold text-xs px-2 py-2 rounded-lg border border-rose-200" title="Eliminar semana">
           🗑️
         </button>
       </div>
     </header>
 
-    <!-- TARJETAS DE DÍAS -->
+    <!-- APARTADO 1: METAS PROGRAMADAS Y CONTROL CORPORAL -->
+    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2.5">
+      <div class="flex justify-between items-center border-b pb-1.5">
+        <span class="font-bold text-slate-900 text-xs">⚙️ Macros Programados (Meta Diaria)</span>
+        <span id="target-cal-display" class="text-blue-600 text-xs font-extrabold">0 kcal</span>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-xs">
+        <div>
+          <label class="block font-bold text-blue-700 text-[9px] uppercase mb-0.5">Proteína (g)</label>
+          <input type="number" id="target-prot" onchange="updateTargets()" class="w-full bg-blue-50/50 border border-blue-200 rounded p-1 text-center font-bold text-blue-900 text-xs outline-none">
+        </div>
+        <div>
+          <label class="block font-bold text-amber-700 text-[9px] uppercase mb-0.5">Carbohidratos (g)</label>
+          <input type="number" id="target-carb" onchange="updateTargets()" class="w-full bg-amber-50/50 border border-amber-200 rounded p-1 text-center font-bold text-amber-900 text-xs outline-none">
+        </div>
+        <div>
+          <label class="block font-bold text-emerald-700 text-[9px] uppercase mb-0.5">Grasas (g)</label>
+          <input type="number" id="target-fat" onchange="updateTargets()" class="w-full bg-emerald-50/50 border border-emerald-200 rounded p-1 text-center font-bold text-emerald-900 text-xs outline-none">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1.5 border-t border-slate-100 text-xs">
+        <div>
+          <label class="text-[9px] text-slate-500 block mb-0.5">Peso Inicial / Final (Kg):</label>
+          <div class="flex gap-1">
+            <input type="number" step="0.1" id="peso-inicial" onchange="updateInitialWeight()" class="w-1/2 bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-xs" placeholder="Inicial">
+            <span id="peso-final-display" class="w-1/2 bg-slate-100 border border-slate-300 rounded p-1 text-center font-bold text-xs leading-none flex items-center justify-center text-slate-800">0 Kg</span>
+          </div>
+        </div>
+        <div>
+          <label class="text-[9px] text-slate-500 block mb-0.5">Talla Inicial / Final (cm):</label>
+          <div class="flex gap-1">
+            <input type="number" step="0.1" id="talla-inicial" onchange="updateInitialTalla()" class="w-1/2 bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-xs" placeholder="Inicial">
+            <input type="number" step="0.1" id="talla-final" onchange="updateFinalTalla()" class="w-1/2 bg-white border border-slate-300 rounded p-1 text-center font-bold text-xs" placeholder="Final">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- APARTADO 2: CAPTURA DIARIA CON FECHAS REALES -->
     <div id="days-container" class="space-y-2"></div>
 
     <!-- BOTÓN CERRAR SEMANA INFERIOR -->
@@ -214,9 +180,26 @@
   <script>
     const DAYS_NAMES = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"];
     
-    function getDefaultDays() {
-      return DAYS_NAMES.map(name => ({ day: name, date: "", peso: "", prot: "", carb: "", fat: "" }));
+    function getDatesFromDate(baseDate) {
+      return DAYS_NAMES.map((name, index) => {
+        const d = new Date(baseDate);
+        d.setDate(baseDate.getDate() + index);
+        const dayStr = String(d.getDate()).padStart(2, '0');
+        const monthStr = String(d.getMonth() + 1).padStart(2, '0');
+        return { day: name, date: `${dayStr}/${monthStr}/${d.getFullYear()}` };
+      });
     }
+
+    function getCurrentWeekDates() {
+      const now = new Date();
+      const currentDayOfWeek = now.getDay();
+      const distanceToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + distanceToMonday);
+      return getDatesFromDate(monday);
+    }
+
+    const currentDates = getCurrentWeekDates();
 
     const CLEAN_DATA = {
       activeWeekId: "week_1",
@@ -227,12 +210,12 @@
           targetProt: 0, targetCarb: 0, targetFat: 0,
           pesoInicial: 0, tallaInicial: 0, tallaFinal: 0,
           isClosed: false,
-          days: getDefaultDays()
+          days: currentDates.map(d => ({ day: d.day, date: d.date, peso: "", prot: "", carb: "", fat: "" }))
         }
       }
     };
 
-    let STORAGE_KEY = "macroTrackerSafeFlowV3";
+    let STORAGE_KEY = "macroTrackerFullViewV4";
     let savedRaw = localStorage.getItem(STORAGE_KEY);
     let appState = CLEAN_DATA;
     
@@ -272,7 +255,10 @@
     }
 
     function switchWeek(weekId) { appState.activeWeekId = weekId; saveState(); }
-    function openSummaryModal() { document.getElementById("summary-modal").classList.remove("hidden"); }
+    function openSummaryModal() { 
+      generateSummaryText();
+      document.getElementById("summary-modal").classList.remove("hidden"); 
+    }
     function closeSummaryModal() { document.getElementById("summary-modal").classList.add("hidden"); }
 
     function openNewWeekModal() {
@@ -297,6 +283,17 @@
       const lastWeek = getCurrentWeek();
       const wInit = getPesoFinal(lastWeek) || lastWeek.pesoInicial || 0;
       const tInit = lastWeek.tallaFinal || lastWeek.tallaInicial || 0;
+
+      let nextMonday = new Date();
+      if (lastWeek && lastWeek.days && lastWeek.days.length > 0) {
+        const lastDateStr = lastWeek.days[lastWeek.days.length - 1].date;
+        if (lastDateStr) {
+          const parts = lastDateStr.split('/');
+          const lastDate = new Date(parts[2], parts[1] - 1, parts[0]);
+          lastDate.setDate(lastDate.getDate() + 1);
+          nextMonday = lastDate;
+        }
+      }
       
       appState.weeks[newId] = {
         id: newId,
@@ -304,7 +301,7 @@
         targetProt: p, targetCarb: c, targetFat: f,
         pesoInicial: wInit, tallaInicial: tInit, tallaFinal: 0,
         isClosed: false,
-        days: getDefaultDays()
+        days: getDatesFromDate(nextMonday).map(d => ({ day: d.day, date: d.date, peso: "", prot: "", carb: "", fat: "" }))
       };
       appState.activeWeekId = newId;
       closeNewWeekModal();
@@ -360,32 +357,21 @@
       const container = document.getElementById("days-container");
       container.innerHTML = "";
 
-      let totalProt = 0, totalCarb = 0, totalFat = 0, totalCal = 0;
-      let countDaysWithData = 0;
-      let weights = [];
-
       const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
 
       week.days.forEach((day, index) => {
         const p = parseFloat(day.prot) || 0;
         const c = parseFloat(day.carb) || 0;
         const f = parseFloat(day.fat) || 0;
-        const w = parseFloat(day.peso) || null;
-
-        const hasData = day.prot !== "" || day.carb !== "" || day.fat !== "";
-        if (hasData) countDaysWithData++;
-
-        totalProt += p; totalCarb += c; totalFat += f;
         const dayCal = (p * 4) + (c * 4) + (f * 9);
-        totalCal += dayCal;
-        if (w) weights.push(w);
 
         const card = document.createElement("div");
-        card.className = `bg-white p-2 rounded-xl border shadow-sm transition flex flex-col justify-between ${index === todayIndex ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200'}`;
+        card.className = `bg-white p-2.5 rounded-xl border shadow-sm transition flex flex-col justify-between ${index === todayIndex ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200'}`;
         card.innerHTML = `
           <div class="flex justify-between items-center mb-1">
             <div class="flex items-center gap-1.5">
               <span class="font-extrabold text-slate-900 text-xs">${day.day}</span>
+              <span class="text-[10px] text-slate-400 font-medium">${day.date || ''}</span>
               ${index === todayIndex ? '<span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-bold">HOY</span>' : ''}
             </div>
             <div class="text-[10px] text-slate-500 font-semibold">
@@ -402,21 +388,21 @@
                 class="w-full bg-white border border-slate-300 rounded p-1 text-center font-bold text-slate-900 text-xs macro-input">
             </div>
             <div class="bg-blue-50/50 p-1 rounded border border-blue-100 text-center">
-              <span class="text-[8px] font-bold text-blue-700 block uppercase leading-none mb-1">Prot (g)</span>
+              <span class="text-[8px] font-bold text-blue-700 block uppercase leading-none mb-1">Proteína (g)</span>
               <input type="number" value="${day.prot !== undefined ? day.prot : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
                 onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'prot', this.value);" 
                 class="w-full bg-white border border-blue-200 rounded p-1 text-center font-bold text-blue-900 text-xs macro-input">
             </div>
             <div class="bg-amber-50/50 p-1 rounded border border-amber-100 text-center">
-              <span class="text-[8px] font-bold text-amber-700 block uppercase leading-none mb-1">Carb (g)</span>
+              <span class="text-[8px] font-bold text-amber-700 block uppercase leading-none mb-1">Carbos (g)</span>
               <input type="number" value="${day.carb !== undefined ? day.carb : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
                 onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'carb', this.value);" 
                 class="w-full bg-white border border-amber-300 rounded p-1 text-center font-bold text-amber-900 text-xs macro-input">
             </div>
             <div class="bg-emerald-50/50 p-1 rounded border border-emerald-100 text-center">
-              <span class="text-[8px] font-bold text-emerald-700 block uppercase leading-none mb-1">Grasa (g)</span>
+              <span class="text-[8px] font-bold text-emerald-700 block uppercase leading-none mb-1">Grasas (g)</span>
               <input type="number" value="${day.fat !== undefined ? day.fat : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
                 onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'fat', this.value);" 
@@ -427,37 +413,11 @@
         container.appendChild(card);
       });
 
-      const divisor = countDaysWithData > 0 ? countDaysWithData : 1;
-      const avgProtVal = Math.round(totalProt / divisor);
-      const avgCarbVal = Math.round(totalCarb / divisor);
-      const avgFatVal = Math.round(totalFat / divisor);
-      const avgCalVal = Math.round(totalCal / divisor);
-
-      const nivP = totalProt - ((week.targetProt || 0) * 7);
-      const nivC = totalCarb - ((week.targetCarb || 0) * 7);
-      const nivF = totalFat - ((week.targetFat || 0) * 7);
-      const nivCalVal = (nivP * 4) + (nivC * 4) + (nivF * 9);
-
-      document.getElementById("table-target-prot").textContent = `${week.targetProt || 0}g`;
-      document.getElementById("table-target-carb").textContent = `${week.targetCarb || 0}g`;
-      document.getElementById("table-target-fat").textContent = `${week.targetFat || 0}g`;
-      document.getElementById("table-target-cal").textContent = `${targetCal} kcal`;
-
-      document.getElementById("table-avg-prot").textContent = `${avgProtVal}g`;
-      document.getElementById("table-avg-carb").textContent = `${avgCarbVal}g`;
-      document.getElementById("table-avg-fat").textContent = `${avgFatVal}g`;
-      document.getElementById("table-avg-cal").textContent = `${avgCalVal} kcal`;
-
-      document.getElementById("table-niv-prot").textContent = nivP > 0 ? `+${nivP}g` : `${nivP}g`;
-      document.getElementById("table-niv-carb").textContent = nivC > 0 ? `+${nivC}g` : `${nivC}g`;
-      document.getElementById("table-niv-fat").textContent = nivF > 0 ? `+${nivF}g` : `${nivF}g`;
-      document.getElementById("table-niv-cal").textContent = `${nivCalVal} kcal`;
-
-      const pesoFinal = weights.length > 0 ? weights[weights.length - 1] : (week.pesoInicial || 0);
+      const pesoFinal = getPesoFinal(week);
       document.getElementById("peso-final-display").textContent = `${pesoFinal} Kg`;
     }
 
-    function copySummaryText() {
+    function generateSummaryText() {
       const week = getCurrentWeek();
       if (!week) return;
 
@@ -466,37 +426,67 @@
       const fMeta = week.targetFat || 0;
       const calMeta = (pMeta * 4) + (cMeta * 4) + (fMeta * 9);
 
-      const pAvg = document.getElementById("table-avg-prot").textContent;
-      const cAvg = document.getElementById("table-avg-carb").textContent;
-      const fAvg = document.getElementById("table-avg-fat").textContent;
-      const calAvg = document.getElementById("table-avg-cal").textContent;
+      let totalProt = 0, totalCarb = 0, totalFat = 0, totalCal = 0, countDays = 0;
+      week.days.forEach(d => {
+        const p = parseFloat(d.prot) || 0;
+        const c = parseFloat(d.carb) || 0;
+        const f = parseFloat(d.fat) || 0;
+        if (d.prot !== "" || d.carb !== "" || d.fat !== "") countDays++;
+        totalProt += p;
+        totalCarb += c;
+        totalFat += f;
+        totalCal += (p * 4) + (c * 4) + (f * 9);
+      });
 
-      const pNiv = document.getElementById("table-niv-prot").textContent;
-      const cNiv = document.getElementById("table-niv-carb").textContent;
-      const fNiv = document.getElementById("table-niv-fat").textContent;
-      const calNiv = document.getElementById("table-niv-cal").textContent;
+      const div = countDays > 0 ? countDays : 1;
+      const avgProt = Math.round(totalProt / div);
+      const avgCarb = Math.round(totalCarb / div);
+      const avgFat = Math.round(totalFat / div);
+      const avgCal = Math.round(totalCal / div);
 
-      const pInit = week.pesoInicial || 0;
-      const pFin = document.getElementById("peso-final-display").textContent;
+      const pesoIni = week.pesoInicial || 0;
+      const pesoFin = getPesoFinal(week);
+      const tallaIni = week.tallaInicial || 0;
+      const tallaFin = week.tallaFinal || 0;
 
-      const textToCopy = `📊 RESUMEN MACROS - ${week.title}
-----------------------------------
-🎯 METAS DIARIAS:
-- Prot: ${pMeta}g | Carb: ${cMeta}g | Grasa: ${fMeta}g (${calMeta} kcal)
+      let text = `📊 RESUMEN GENERAL - ${week.title}\n`;
+      text += `----------------------------------\n`;
+      text += `🎯 BASE DE MACROS (METAS DIARIAS):\n`;
+      text += `- Proteína: ${pMeta}g\n`;
+      text += `- Carbohidratos: ${cMeta}g\n`;
+      text += `- Grasas: ${fMeta}g\n`;
+      text += `- Calorías Meta: ${calMeta} kcal\n\n`;
 
-📈 PROMEDIO REAL/DÍA:
-- Prot: ${pAvg} | Carb: ${cAvg} | Grasa: ${fAvg} (${calAvg} kcal/día)
+      text += `📈 PROMEDIO REAL CONSUMIDO:\n`;
+      text += `- Proteína: ${avgProt}g\n`;
+      text += `- Carbohidratos: ${avgCarb}g\n`;
+      text += `- Grasas: ${avgFat}g\n`;
+      text += `- Calorías Promedio: ${avgCal} kcal/día\n\n`;
 
-⚠️ NIVELACIÓN SEMANAL:
-- Prot: ${pNiv} | Carb: ${cNiv} | Grasa: ${fNiv} (${calNiv})
+      text += `⚖️ RESULTADO DE PESO Y MEDIDA:\n`;
+      text += `- Peso Inicial: ${pesoIni} Kg | Peso Final: ${pesoFin} Kg\n`;
+      text += `- Talla Inicial: ${tallaIni} cm | Talla Final: ${tallaFin} cm\n\n`;
 
-⚖️ PROGRESO CORPORAL:
-- Peso Inicial: ${pInit} Kg | Peso Actual: ${pFin}`;
+      text += `📅 REGISTROS DIARIOS:\n`;
+      week.days.forEach(d => {
+        const dp = d.prot !== "" ? `${d.prot}g` : `0g`;
+        const dc = d.carb !== "" ? `${d.carb}g` : `0g`;
+        const df = d.fat !== "" ? `${d.fat}g` : `0g`;
+        const dw = d.peso !== "" ? `${d.peso} Kg` : `Sin peso`;
+        const dCal = (parseFloat(d.prot || 0) * 4) + (parseFloat(d.carb || 0) * 4) + (parseFloat(d.fat || 0) * 9);
+        text += `• ${d.day} (${d.date}): Peso: ${dw} | Prot: ${dp}, Carb: ${dc}, Grasa: ${df} (${dCal} kcal)\n`;
+      });
 
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        alert("📋 Resumen copiado al portapapeles exitosamente.");
+      document.getElementById("summary-text-box").value = text;
+    }
+
+    function copySummaryText() {
+      const textBox = document.getElementById("summary-text-box");
+      textBox.select();
+      navigator.clipboard.writeText(textBox.value).then(() => {
+        alert("📋 ¡Resumen completo copiado al portapapeles exitosamente!");
       }).catch(() => {
-        alert("No se pudo copiar automáticamente.");
+        alert("No se pudo copiar automáticamente. Puedes seleccionarlo y copiarlo de forma manual.");
       });
     }
 
@@ -537,20 +527,11 @@
       saveState();
     }
 
-    function resetCurrentWeek() {
-      if (confirm("¿Reiniciar registros de esta semana?")) {
-        const week = getCurrentWeek();
-        week.days.forEach(d => { d.peso = ""; d.prot = ""; d.carb = ""; d.fat = ""; });
-        saveState();
-      }
-    }
-
     function render() {
       renderWeekSelect();
       renderTable();
     }
 
-    // Blindaje anti-pantalla en blanco al cargar
     document.addEventListener("DOMContentLoaded", () => {
       render();
     });
