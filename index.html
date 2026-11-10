@@ -25,345 +25,185 @@
     .macro-input:focus { transform: scale(1.02); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4); }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen pb-16 font-sans">
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-20 font-sans">
 
   <!-- Barra de Instalación Manual -->
-  <div id="install-container" class="hidden bg-blue-700 text-white px-4 py-2.5 text-xs md:text-sm flex justify-between items-center sticky top-0 z-50 shadow-md">
+  <div id="install-container" class="hidden bg-blue-700 text-white px-4 py-2 text-xs flex justify-between items-center sticky top-0 z-50 shadow-md">
     <span class="font-medium">🚀 ¡Lleva esta app a tu pantalla de inicio!</span>
-    <button id="btn-install" class="bg-white text-blue-800 hover:bg-blue-50 font-bold px-3 py-1.5 rounded-lg text-xs ml-2 shrink-0 transition shadow-sm">
-      Instalar App
-    </button>
+    <button id="btn-install" class="bg-white text-blue-800 font-bold px-2.5 py-1 rounded text-xs ml-2 shrink-0">Instalar</button>
   </div>
 
-  <!-- MODAL 1: Configurar Macros Nueva Semana -->
+  <!-- MODAL: Resumen y Configuración de Semana -->
+  <div id="summary-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-4 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">📊 Resumen y Metas de la Semana</h3>
+        <button onclick="closeSummaryModal()" class="text-slate-400 hover:text-slate-600 font-bold text-base">✕</button>
+      </div>
+
+      <!-- Metas Diarias Editables -->
+      <div class="space-y-1.5 bg-slate-50 p-3 rounded-xl border">
+        <div class="text-xs font-bold text-slate-700 flex justify-between">
+          <span>⚙️ Metas Diarias (Objetivo)</span>
+          <span id="target-cal-display" class="text-blue-600 font-extrabold">0 kcal</span>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-xs">
+          <div>
+            <label class="block font-bold text-blue-700 text-[9px] uppercase">Prot (g)</label>
+            <input type="number" id="target-prot" onchange="updateTargets()" class="w-full bg-white border border-blue-200 rounded p-1 text-center font-bold text-blue-900">
+          </div>
+          <div>
+            <label class="block font-bold text-amber-700 text-[9px] uppercase">Carbos (g)</label>
+            <input type="number" id="target-carb" onchange="updateTargets()" class="w-full bg-white border border-amber-200 rounded p-1 text-center font-bold text-amber-900">
+          </div>
+          <div>
+            <label class="block font-bold text-emerald-700 text-[9px] uppercase">Grasas (g)</label>
+            <input type="number" id="target-fat" onchange="updateTargets()" class="w-full bg-white border border-emerald-200 rounded p-1 text-center font-bold text-emerald-900">
+          </div>
+        </div>
+      </div>
+
+      <!-- Control Peso / Talla Inicial y Final -->
+      <div class="space-y-1.5 bg-slate-50 p-3 rounded-xl border text-xs">
+        <div class="font-bold text-slate-700">⚖️ Control Peso y Talla</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] text-slate-500">Peso Inicial (Kg)</label>
+            <input type="number" step="0.1" id="peso-inicial" onchange="updateInitialWeight()" class="w-full bg-white border rounded p-1 text-center font-bold">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-500">Talla Inicial (cm)</label>
+            <input type="number" step="0.1" id="talla-inicial" onchange="updateInitialTalla()" class="w-full bg-white border rounded p-1 text-center font-bold">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1 border-t">
+          <div class="flex justify-between items-center bg-white p-1.5 rounded border">
+            <span class="text-[10px] text-slate-500">Peso Final:</span>
+            <span id="peso-final-display" class="font-bold text-slate-900 text-xs">0 Kg</span>
+          </div>
+          <div class="flex justify-between items-center bg-white p-1.5 rounded border">
+            <span class="text-[10px] text-slate-500">Talla Final:</span>
+            <input type="number" step="0.1" id="talla-final" onchange="updateFinalTalla()" class="w-16 bg-slate-50 border rounded p-0.5 text-center font-bold text-xs">
+          </div>
+        </div>
+      </div>
+
+      <!-- Promedios Reales y Nivelación -->
+      <div class="space-y-2 text-xs">
+        <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200 space-y-1">
+          <div class="font-bold text-blue-900 flex justify-between">
+            <span>📊 Promedio Diario Consumido</span>
+            <span id="avg-macros-cal" class="font-extrabold">0 kcal/día</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1 text-center font-bold">
+            <div class="bg-white p-1 rounded"><span class="text-[9px] text-blue-800 block">Prot</span><span id="avg-prot" class="text-blue-900">0g</span></div>
+            <div class="bg-white p-1 rounded"><span class="text-[9px] text-amber-800 block">Carbos</span><span id="avg-carb" class="text-amber-900">0g</span></div>
+            <div class="bg-white p-1 rounded"><span class="text-[9px] text-emerald-800 block">Grasas</span><span id="avg-fat" class="text-emerald-900">0g</span></div>
+          </div>
+        </div>
+
+        <div class="bg-yellow-50 p-2.5 rounded-xl border border-yellow-200 space-y-1">
+          <div class="font-bold text-slate-900 flex justify-between">
+            <span>⚠️ Nivelación Semanal</span>
+            <span id="niv-cal" class="font-extrabold text-slate-800">0 kcal</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1 text-center font-bold">
+            <div class="bg-white/70 p-1 rounded"><span class="text-[9px] text-blue-800 block">Prot</span><span id="niv-prot">0</span></div>
+            <div class="bg-white/70 p-1 rounded"><span class="text-[9px] text-amber-800 block">Carbos</span><span id="niv-carb">0</span></div>
+            <div class="bg-white/70 p-1 rounded"><span class="text-[9px] text-emerald-800 block">Grasas</span><span id="niv-fat">0</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <button onclick="resetCurrentWeek()" class="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold py-2 rounded-xl text-xs">Reiniciar Semana</button>
+        <button onclick="closeSummaryModal()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-xs shadow">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: Configurar Nueva Semana -->
   <div id="new-week-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="font-extrabold text-slate-900 text-base">✨ Configurar Nueva Semana</h3>
-        <button onclick="closeNewWeekModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 space-y-3">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-extrabold text-slate-900 text-sm">✨ Configurar Nueva Semana</h3>
+        <button onclick="closeNewWeekModal()" class="text-slate-400 font-bold text-base">✕</button>
       </div>
-      
-      <p class="text-xs text-slate-500">Ingresa los macros objetivo para esta semana. El peso y talla inicial se arrastran automáticamente del periodo anterior.</p>
-      
-      <div class="space-y-3 text-xs">
-        <div class="grid grid-cols-3 gap-2">
-          <div>
-            <label class="block font-bold text-blue-700 uppercase text-[10px] mb-1">Proteína (g)</label>
-            <input type="number" id="modal-prot" class="w-full bg-blue-50/50 border border-blue-200 rounded-lg p-2 text-center font-bold text-blue-900 outline-none" placeholder="200">
-          </div>
-          <div>
-            <label class="block font-bold text-amber-700 uppercase text-[10px] mb-1">Carbos (g)</label>
-            <input type="number" id="modal-carb" class="w-full bg-amber-50/50 border border-amber-200 rounded-lg p-2 text-center font-bold text-amber-900 outline-none" placeholder="220">
-          </div>
-          <div>
-            <label class="block font-bold text-emerald-700 uppercase text-[10px] mb-1">Grasas (g)</label>
-            <input type="number" id="modal-fat" class="w-full bg-emerald-50/50 border border-emerald-200 rounded-lg p-2 text-center font-bold text-emerald-900 outline-none" placeholder="85">
-          </div>
-        </div>
-
-        <div class="bg-slate-50 p-2.5 rounded-lg border text-[11px] text-slate-600 space-y-1">
-          <div class="flex justify-between"><span>Peso Inicial Arrastrado:</span> <b id="modal-preview-peso">0 Kg</b></div>
-          <div class="flex justify-between"><span>Talla Inicial Arrastrada:</span> <b id="modal-preview-talla">0 cm</b></div>
-        </div>
+      <p class="text-xs text-slate-500">Ingresa tus metas de macros. El peso y talla inicial se arrastran del periodo anterior.</p>
+      <div class="grid grid-cols-3 gap-2 text-xs">
+        <div><label class="block font-bold text-blue-700 text-[10px]">Prot (g)</label><input type="number" id="modal-prot" class="w-full bg-blue-50 border rounded p-1.5 text-center font-bold"></div>
+        <div><label class="block font-bold text-amber-700 text-[10px]">Carbos (g)</label><input type="number" id="modal-carb" class="w-full bg-amber-50 border rounded p-1.5 text-center font-bold"></div>
+        <div><label class="block font-bold text-emerald-700 text-[10px]">Grasas (g)</label><input type="number" id="modal-fat" class="w-full bg-emerald-50 border rounded p-1.5 text-center font-bold"></div>
       </div>
-
+      <div class="bg-slate-50 p-2 rounded text-[11px] flex justify-between">
+        <span>Peso inicial arrastrado:</span> <b id="modal-preview-peso">0 Kg</b>
+      </div>
       <div class="flex gap-2 pt-2">
-        <button onclick="closeNewWeekModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
-          Cancelar
-        </button>
-        <button onclick="confirmAddNewWeek()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">
-          Iniciar Semana
-        </button>
+        <button onclick="closeNewWeekModal()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs">Cancelar</button>
+        <button onclick="confirmAddNewWeek()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded-xl text-xs shadow">Iniciar</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL 2: Formulario de Cierre de Semana -->
+  <!-- MODAL 2: Cierre de Semana -->
   <div id="close-week-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h3 class="font-extrabold text-slate-900 text-base">🔒 Cerrar Semana Actual</h3>
-        <button onclick="closeCloseWeekModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 space-y-3">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-extrabold text-slate-900 text-sm">🔒 Cerrar Semana Actual</h3>
+        <button onclick="closeCloseWeekModal()" class="text-slate-400 font-bold text-base">✕</button>
       </div>
-      
-      <p class="text-xs text-slate-500">Confirma tus mediciones finales para consolidar el avance de este periodo y dar paso a la siguiente semana.</p>
-      
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Peso Final Registrado (Kg)</label>
-          <input type="number" step="0.1" id="close-modal-peso" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-center font-bold text-slate-900 outline-none">
-        </div>
-        <div>
-          <label class="block font-bold text-slate-700 uppercase text-[10px] mb-1">Talla Final Registrada (cm)</label>
-          <input type="number" step="0.1" id="close-modal-talla" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-center font-bold text-slate-900 outline-none">
-        </div>
+      <div class="space-y-2 text-xs">
+        <div><label class="block font-bold text-slate-700 text-[10px]">Peso Final (Kg)</label><input type="number" step="0.1" id="close-modal-peso" class="w-full bg-slate-50 border rounded p-2 text-center font-bold"></div>
+        <div><label class="block font-bold text-slate-700 text-[10px]">Talla Final (cm)</label><input type="number" step="0.1" id="close-modal-talla" class="w-full bg-slate-50 border rounded p-2 text-center font-bold"></div>
       </div>
-
       <div class="flex gap-2 pt-2">
-        <button onclick="closeCloseWeekModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl text-xs transition">
-          Cancelar
-        </button>
-        <button onclick="confirmCloseWeekAndProceed()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">
-          Cerrar y Abrir Siguiente
-        </button>
+        <button onclick="closeCloseWeekModal()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-2 rounded-xl text-xs">Cancelar</button>
+        <button onclick="confirmCloseWeekAndProceed()" class="flex-1 bg-emerald-600 text-white font-bold py-2 rounded-xl text-xs shadow">Cerrar y Abrir Siguiente</button>
       </div>
     </div>
   </div>
 
-  <div class="max-w-4xl mx-auto px-3 py-4 md:py-6 space-y-4">
+  <div class="max-w-2xl mx-auto px-3 py-3 space-y-3">
     
-    <!-- Header Principal -->
-    <header class="flex flex-col sm:flex-row justify-between items-center gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-      <div class="flex items-center gap-3 w-full sm:w-auto">
-        <span class="text-3xl">⚖️</span>
+    <!-- Header Principal Compacto -->
+    <header class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">⚖️</span>
         <div>
-          <h1 class="text-lg font-bold text-slate-900">Control de Macros</h1>
-          <p class="text-xs text-slate-500">Gestión inteligente y tiempo real</p>
+          <h1 class="text-sm font-extrabold text-slate-900">Control de Macros</h1>
+          <select id="week-select" onchange="switchWeek(this.value)" class="bg-slate-50 border text-slate-800 font-bold text-xs rounded p-0.5 outline-none mt-0.5">
+          </select>
         </div>
       </div>
-      <div class="flex items-center gap-2 w-full sm:w-auto">
-        <select id="week-select" onchange="switchWeek(this.value)" class="bg-slate-50 border border-slate-300 text-slate-900 font-semibold text-sm rounded-lg p-2 flex-1 sm:w-48 outline-none">
-        </select>
-        <button onclick="openNewWeekModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs px-3 py-2.5 rounded-lg transition shadow-sm shrink-0">
-          + Semana
+      <div class="flex items-center gap-1.5">
+        <button onclick="openSummaryModal()" class="bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs px-2.5 py-2 rounded-lg border border-blue-200 flex items-center gap-1">
+          📊 Resumen
         </button>
-        <button onclick="deleteCurrentWeek()" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-medium text-xs px-2.5 py-2.5 rounded-lg transition shrink-0" title="Eliminar semana actual">
+        <button onclick="openNewWeekModal()" class="bg-blue-600 text-white font-bold text-xs px-2.5 py-2 rounded-lg shadow-sm">
+          +
+        </button>
+        <button onclick="deleteCurrentWeek()" class="bg-rose-50 text-rose-700 font-bold text-xs px-2 py-2 rounded-lg border border-rose-200" title="Eliminar semana">
           🗑️
         </button>
       </div>
     </header>
 
-    <!-- Pestañas de Navegación -->
-    <div class="bg-slate-200 p-1 rounded-xl flex gap-1 text-sm font-bold shadow-inner">
-      <button id="tab-quick" onclick="setMode('quick')" class="flex-1 py-2 text-center rounded-lg bg-blue-600 text-white shadow-sm transition">
-        ⚡ Registro Rápido Hoy
-      </button>
-      <button id="tab-full" onclick="setMode('full')" class="flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition">
-        📊 Vista Completa
-      </button>
-    </div>
-
-    <!-- PANEL DE REALIDAD / MENSAJE MOTIVACIONAL -->
-    <div id="motivation-box" class="p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-slate-900 text-white border-slate-800">
-      <span id="mot-icon" class="text-2xl">⚙️</span>
-      <div class="space-y-1 flex-1">
-        <div class="flex justify-between items-center">
-          <h4 id="mot-title" class="text-xs font-extrabold uppercase tracking-wider text-blue-400">Panel de Control Activo</h4>
-          <span id="mot-tag" class="text-[10px] bg-blue-900/80 px-2 py-0.5 rounded text-blue-200 font-bold">Semana 1</span>
-        </div>
-        <p id="mot-text" class="text-xs md:text-sm text-slate-200 font-medium leading-relaxed">
-          Captura tus valores del día actual y ajusta tus metas semanales libremente.
-        </p>
+    <!-- Panel Motivacional Compacto -->
+    <div id="motivation-box" class="p-3 rounded-xl border shadow-sm flex items-center gap-2.5 bg-slate-900 text-white border-slate-800 text-xs">
+      <span id="mot-icon" class="text-xl">🔥</span>
+      <div class="flex-1">
+        <span id="mot-title" class="font-extrabold text-blue-400">Panel Activo</span>
+        <p id="mot-text" class="text-slate-300 text-[11px] leading-tight">Captura tus valores diarios abajo.</p>
       </div>
     </div>
 
-    <!-- VISTA 1: CAPTURA RÁPIDA (DÍA ACTUAL) -->
-    <div id="view-quick" class="space-y-4">
-      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
-        <div class="flex justify-between items-center border-b pb-3">
-          <div>
-            <h2 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
-              📅 REGISTRO DE HOY
-            </h2>
-            <p id="quick-date-label" class="text-xs text-blue-600 font-bold">Cargando fecha actual...</p>
-          </div>
-          <span id="quick-day-badge" class="text-xs bg-blue-100 text-blue-800 font-bold px-2.5 py-1 rounded-full">Día en curso</span>
-        </div>
+    <!-- TARJETAS DE DÍAS SÚPER COMPACTAS -->
+    <div id="days-container" class="space-y-2"></div>
 
-        <div class="space-y-3">
-          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-            <label class="block text-xs font-bold text-slate-700 mb-1">Peso del Día (Kg)</label>
-            <input type="number" step="0.1" id="quick-peso" 
-              onfocus="this.select(); window.oldVal = this.value;" 
-              onblur="if(this.value==='') this.value = window.oldVal;"
-              class="w-full bg-white border border-slate-300 rounded-lg p-2 text-base font-bold text-slate-900 text-center outline-none macro-input" placeholder="0.0">
-          </div>
-
-          <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-200">
-            <div class="flex justify-between text-xs font-bold text-blue-800 mb-1">
-              <span>Proteína (g)</span>
-              <span id="quick-target-prot" class="text-blue-600 font-normal">Meta: 0g</span>
-            </div>
-            <input type="number" id="quick-prot" 
-              onfocus="this.select(); window.oldVal = this.value;" 
-              onblur="if(this.value==='') this.value = window.oldVal;"
-              class="w-full bg-white border border-blue-300 rounded-lg p-2 text-base font-bold text-blue-900 text-center outline-none macro-input" placeholder="0">
-          </div>
-
-          <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-200">
-            <div class="flex justify-between text-xs font-bold text-amber-800 mb-1">
-              <span>Carbohidratos (g)</span>
-              <span id="quick-target-carb" class="text-amber-600 font-normal">Meta: 0g</span>
-            </div>
-            <input type="number" id="quick-carb" 
-              onfocus="this.select(); window.oldVal = this.value;" 
-              onblur="if(this.value==='') this.value = window.oldVal;"
-              class="w-full bg-white border border-amber-300 rounded-lg p-2 text-base font-bold text-amber-900 text-center outline-none macro-input" placeholder="0">
-          </div>
-
-          <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-200">
-            <div class="flex justify-between text-xs font-bold text-emerald-800 mb-1">
-              <span>Grasas (g)</span>
-              <span id="quick-target-fat" class="text-emerald-600 font-normal">Meta: 0g</span>
-            </div>
-            <input type="number" id="quick-fat" 
-              onfocus="this.select(); window.oldVal = this.value;" 
-              onblur="if(this.value==='') this.value = window.oldVal;"
-              class="w-full bg-white border border-emerald-300 rounded-lg p-2 text-base font-bold text-emerald-900 text-center outline-none macro-input" placeholder="0">
-          </div>
-        </div>
-
-        <button onclick="saveQuickData()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition text-sm">
-          GUARDAR VALORES DE HOY
-        </button>
-      </div>
-
-      <button onclick="setMode('full')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
-        📊 IR A VISTA COMPLETA Y NIVELACIÓN
-      </button>
-    </div>
-
-    <!-- VISTA 2: TABLERO COMPLETO -->
-    <div id="view-full" class="hidden space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        
-        <!-- Apartado 1: Metas Diarias Editables -->
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-          <h3 class="font-bold text-slate-900 text-sm border-b pb-2 flex justify-between items-center">
-            <span>⚙️ Metas Diarias de la Semana</span>
-            <span id="target-cal-display" class="text-blue-600 text-xs font-extrabold">0 kcal</span>
-          </h3>
-          <div class="grid grid-cols-3 gap-2 text-xs">
-            <div>
-              <label class="block font-bold text-blue-700 uppercase text-[10px]">Proteína (g)</label>
-              <input type="number" id="target-prot" onchange="updateTargets()" onfocus="this.select()" class="w-full bg-blue-50/50 border border-blue-200 rounded p-1.5 text-center font-bold text-blue-900 outline-none">
-            </div>
-            <div>
-              <label class="block font-bold text-amber-700 uppercase text-[10px]">Carbos (g)</label>
-              <input type="number" id="target-carb" onchange="updateTargets()" onfocus="this.select()" class="w-full bg-amber-50/50 border border-amber-200 rounded p-1.5 text-center font-bold text-amber-900 outline-none">
-            </div>
-            <div>
-              <label class="block font-bold text-emerald-700 uppercase text-[10px]">Grasas (g)</label>
-              <input type="number" id="target-fat" onchange="updateTargets()" onfocus="this.select()" class="w-full bg-emerald-50/50 border border-emerald-200 rounded p-1.5 text-center font-bold text-emerald-900 outline-none">
-            </div>
-          </div>
-        </div>
-
-        <!-- Apartado 2: Control de Peso y Talla -->
-        <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-          <h3 class="font-bold text-slate-900 text-sm border-b pb-2">📊 Control Peso / Talla</h3>
-          <div class="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <label class="text-[10px] text-slate-500 block mb-0.5">Peso Inicial (Kg)</label>
-              <input type="number" step="0.1" id="peso-inicial" onchange="updateInitialWeight()" onfocus="this.select()" class="w-full bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-slate-800">
-            </div>
-            <div>
-              <label class="text-[10px] text-slate-500 block mb-0.5">Talla Inicial (cm)</label>
-              <input type="number" step="0.1" id="talla-inicial" onchange="updateInitialTalla()" onfocus="this.select()" class="w-full bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-slate-800">
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t">
-            <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded">
-              <span class="text-slate-500">Peso Final:</span>
-              <span id="peso-final-display" class="font-bold text-slate-900">0 Kg</span>
-            </div>
-            <div class="flex justify-between items-center bg-slate-50 p-1.5 rounded">
-              <span class="text-slate-500">Talla Final:</span>
-              <input type="number" step="0.1" id="talla-final" onchange="updateFinalTalla()" onfocus="this.select()" class="w-16 bg-white border border-slate-300 rounded p-0.5 text-center font-bold text-slate-800">
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Contenedor Principal de la Semana -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-3 bg-blue-600 text-white flex justify-between items-center">
-          <h2 id="week-title" class="font-bold text-sm md:text-base">Semana 1</h2>
-          <span class="text-[10px] bg-blue-700 px-2 py-0.5 rounded-full text-blue-100 font-medium">Captura Diaria</span>
-        </div>
-
-        <div id="days-container" class="divide-y divide-slate-100"></div>
-
-        <div class="bg-slate-50 p-4 border-t-2 border-slate-200 space-y-3 text-xs">
-          
-          <!-- Promedio de Macros Diarios Consumidos -->
-          <div class="bg-blue-50/90 p-3 rounded-lg border border-blue-200 space-y-2">
-            <div class="font-bold text-slate-900 flex justify-between items-center">
-              <span>📊 Promedio Diario de Macros (Consumo):</span>
-              <span id="avg-macros-cal" class="font-extrabold text-blue-900">0 kcal/día</span>
-            </div>
-            <div class="grid grid-cols-3 gap-2 text-center font-bold">
-              <div class="bg-white/80 p-1.5 rounded shadow-sm">
-                <span class="text-[10px] text-blue-800 block">Prot Prom:</span>
-                <span id="avg-prot" class="text-blue-900 text-sm">0g</span>
-              </div>
-              <div class="bg-white/80 p-1.5 rounded shadow-sm">
-                <span class="text-[10px] text-amber-800 block">Carbos Prom:</span>
-                <span id="avg-carb" class="text-amber-900 text-sm">0g</span>
-              </div>
-              <div class="bg-white/80 p-1.5 rounded shadow-sm">
-                <span class="text-[10px] text-emerald-800 block">Grasas Prom:</span>
-                <span id="avg-fat" class="text-emerald-900 text-sm">0g</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Nivelación Semanal -->
-          <div class="bg-yellow-100/90 p-3 rounded-lg border border-yellow-200 space-y-2">
-            <div class="font-bold text-slate-900 flex justify-between items-center">
-              <span>⚠️ Nivelación Semanal (Faltante/Sobrante):</span>
-              <span id="niv-cal" class="font-extrabold text-slate-800">0 kcal</span>
-            </div>
-            <div class="grid grid-cols-3 gap-2 text-center font-bold">
-              <div class="bg-white/70 p-1.5 rounded shadow-sm">
-                <span class="text-[10px] text-blue-800 block">Prot:</span>
-                <span id="niv-prot" class="text-blue-900 text-sm">0</span>
-              </div>
-              <div class="bg-white/70 p-1.5 rounded shadow-sm">
-                <span class="text-[10px] text-amber-800 block">Carbos:</span>
-                <span id="niv-carb" class="text-amber-900 text-sm">0</span>
-              </div>
-              <div class="bg-white/70 p-1.5 rounded shadow-sm">
-                <span class="text-[10px] text-emerald-800 block">Grasas:</span>
-                <span id="niv-fat" class="text-emerald-900 text-sm">0</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
-            <div class="bg-white p-2 rounded border border-slate-200">
-              <span class="text-[10px] text-slate-500 block">Promedio Peso</span>
-              <span id="prom-peso" class="font-bold text-slate-800 text-sm">0.0 Kg</span>
-            </div>
-            <div class="bg-white p-2 rounded border border-slate-200">
-              <span class="text-[10px] text-slate-500 block">Promedio Calorías</span>
-              <span id="prom-cal" class="font-bold text-slate-800 text-sm">0 kcal</span>
-            </div>
-            <div class="bg-white p-2 rounded border border-slate-200">
-              <span class="text-[10px] text-slate-500 block">Variación (Peso/Talla)</span>
-              <div class="font-bold text-blue-600 text-xs">
-                <span id="res-peso-diff">0.0 Kg</span> / <span id="talla-delta-display" class="text-emerald-600">0.0 cm</span>
-              </div>
-            </div>
-            <div class="bg-white p-2 rounded border border-slate-200">
-              <button onclick="resetCurrentWeek()" class="w-full mt-1 text-[11px] text-rose-600 hover:text-rose-800 font-medium underline">
-                Reiniciar Semana
-              </button>
-            </div>
-          </div>
-
-          <!-- BOTÓN PRINCIPAL DE CIERRE DE SEMANA -->
-          <div class="pt-2 border-t border-slate-200">
-            <button onclick="openCloseWeekModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl shadow-md transition text-sm flex items-center justify-center gap-2">
-              🔒 CERRAR SEMANA Y CREAR SIGUIENTE
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <button onclick="setMode('quick')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
-        ⚡ VOLVER A REGISTRO RÁPIDO
+    <!-- BOTÓN DE CIERRE DE SEMANA INFERIOR -->
+    <div class="pt-2">
+      <button onclick="openCloseWeekModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-1.5">
+        🔒 CERRAR SEMANA Y CREAR SIGUIENTE
       </button>
     </div>
 
@@ -378,11 +218,7 @@
         d.setDate(baseDate.getDate() + index);
         const dayStr = String(d.getDate()).padStart(2, '0');
         const monthStr = String(d.getMonth() + 1).padStart(2, '0');
-        const yearStr = d.getFullYear();
-        return {
-          day: name,
-          date: `${dayStr}/${monthStr}/${yearStr}`
-        };
+        return { day: name, date: `${dayStr}/${monthStr}/${d.getFullYear()}` };
       });
     }
 
@@ -397,8 +233,7 @@
 
     function getTodayIndex() {
       const day = new Date().getDay();
-      if (day === 0) return 6;
-      return day - 1;
+      return day === 0 ? 6 : day - 1;
     }
 
     const currentDates = getCurrentWeekDates();
@@ -422,7 +257,7 @@
       }
     };
 
-    let STORAGE_KEY = "macroTrackerStateClosedFlowV5";
+    let STORAGE_KEY = "macroTrackerStateCompactV1";
     let savedRaw = localStorage.getItem(STORAGE_KEY);
     let appState = CLEAN_DATA;
     
@@ -436,29 +271,7 @@
           }
         }
       }
-    } catch(e) {
-      appState = CLEAN_DATA;
-    }
-
-    function setMode(mode) {
-      const qView = document.getElementById("view-quick");
-      const fView = document.getElementById("view-full");
-      const qTab = document.getElementById("tab-quick");
-      const fTab = document.getElementById("tab-full");
-
-      if (mode === 'quick') {
-        qView.classList.remove("hidden");
-        fView.classList.add("hidden");
-        qTab.className = "flex-1 py-2 text-center rounded-lg bg-blue-600 text-white shadow-sm transition font-bold";
-        fTab.className = "flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition font-bold";
-      } else {
-        fView.classList.remove("hidden");
-        qView.classList.add("hidden");
-        fTab.className = "flex-1 py-2 text-center rounded-lg bg-blue-600 text-white shadow-sm transition font-bold";
-        qTab.className = "flex-1 py-2 text-center rounded-lg text-slate-600 hover:text-slate-900 transition font-bold";
-      }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    } catch(e) { appState = CLEAN_DATA; }
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
@@ -477,7 +290,6 @@
       const select = document.getElementById("week-select");
       if (!select) return;
       select.innerHTML = "";
-      if (!appState || !appState.weeks) return;
       Object.values(appState.weeks).forEach(w => {
         const option = document.createElement("option");
         option.value = w.id;
@@ -492,24 +304,19 @@
       saveState();
     }
 
+    function openSummaryModal() { document.getElementById("summary-modal").classList.remove("hidden"); }
+    function closeSummaryModal() { document.getElementById("summary-modal").classList.add("hidden"); }
+
     function openNewWeekModal() {
       const lastWeek = getCurrentWeek() || {};
       document.getElementById("modal-prot").value = lastWeek.targetProt || '';
       document.getElementById("modal-carb").value = lastWeek.targetCarb || '';
       document.getElementById("modal-fat").value = lastWeek.targetFat || '';
-      
       const carriedWeight = getPesoFinal(lastWeek) || lastWeek.pesoInicial || 0;
-      const carriedTalla = lastWeek.tallaFinal || lastWeek.tallaInicial || 0;
-
       document.getElementById("modal-preview-peso").textContent = `${carriedWeight} Kg`;
-      document.getElementById("modal-preview-talla").textContent = `${carriedTalla} cm`;
-      
       document.getElementById("new-week-modal").classList.remove("hidden");
     }
-
-    function closeNewWeekModal() {
-      document.getElementById("new-week-modal").classList.add("hidden");
-    }
+    function closeNewWeekModal() { document.getElementById("new-week-modal").classList.add("hidden"); }
 
     function confirmAddNewWeek() {
       const p = parseInt(document.getElementById("modal-prot").value) || 0;
@@ -517,11 +324,9 @@
       const f = parseInt(document.getElementById("modal-fat").value) || 0;
 
       if (!appState.weeks) appState.weeks = {};
-      const weekKeys = Object.keys(appState.weeks);
-      const newNum = weekKeys.length + 1;
+      const newNum = Object.keys(appState.weeks).length + 1;
       const newId = `week_${Date.now()}`;
       const lastWeek = getCurrentWeek();
-      
       const wInit = getPesoFinal(lastWeek) || lastWeek.pesoInicial || 0;
       const tInit = lastWeek.tallaFinal || lastWeek.tallaInicial || 0;
 
@@ -535,63 +340,40 @@
           nextMonday = lastDate;
         }
       }
-      const newDates = getDatesFromDate(nextMonday);
       
       appState.weeks[newId] = {
         id: newId,
         title: `Semana ${newNum}`,
-        targetProt: p,
-        targetCarb: c,
-        targetFat: f,
-        pesoInicial: wInit,
-        tallaInicial: tInit,
-        tallaFinal: 0,
+        targetProt: p, targetCarb: c, targetFat: f,
+        pesoInicial: wInit, tallaInicial: tInit, tallaFinal: 0,
         isClosed: false,
-        days: newDates.map(d => ({ day: d.day, date: d.date, peso: "", prot: "", carb: "", fat: "" }))
+        days: getDatesFromDate(nextMonday).map(d => ({ day: d.day, date: d.date, peso: "", prot: "", carb: "", fat: "" }))
       };
-
       appState.activeWeekId = newId;
       closeNewWeekModal();
       saveState();
     }
 
-    // Modal de Cierre
     function openCloseWeekModal() {
       const week = getCurrentWeek();
-      const currentPesoFinal = getPesoFinal(week) || week.pesoInicial || 0;
-      const currentTallaFinal = week.tallaFinal || week.tallaInicial || 0;
-
-      document.getElementById("close-modal-peso").value = currentPesoFinal;
-      document.getElementById("close-modal-talla").value = currentTallaFinal;
-
+      document.getElementById("close-modal-peso").value = getPesoFinal(week) || week.pesoInicial || 0;
+      document.getElementById("close-modal-talla").value = week.tallaFinal || week.tallaInicial || 0;
       document.getElementById("close-week-modal").classList.remove("hidden");
     }
-
-    function closeCloseWeekModal() {
-      document.getElementById("close-week-modal").classList.add("hidden");
-    }
+    function closeCloseWeekModal() { document.getElementById("close-week-modal").classList.add("hidden"); }
 
     function confirmCloseWeekAndProceed() {
       const week = getCurrentWeek();
-      const finalW = parseFloat(document.getElementById("close-modal-peso").value) || 0;
-      const finalT = parseFloat(document.getElementById("close-modal-talla").value) || 0;
-
-      week.tallaFinal = finalT;
+      week.tallaFinal = parseFloat(document.getElementById("close-modal-talla").value) || 0;
       week.isClosed = true;
-
       closeCloseWeekModal();
       saveState();
-
       openNewWeekModal();
     }
 
     function deleteCurrentWeek() {
-      const weekKeys = Object.keys(appState.weeks);
-      if (weekKeys.length <= 1) {
-        alert("No puedes eliminar la única semana activa.");
-        return;
-      }
-      if (confirm("¿Estás seguro de eliminar esta semana por completo?")) {
+      if (Object.keys(appState.weeks).length <= 1) { alert("No puedes eliminar la única semana activa."); return; }
+      if (confirm("¿Estás seguro de eliminar esta semana?")) {
         delete appState.weeks[appState.activeWeekId];
         appState.activeWeekId = Object.keys(appState.weeks)[0];
         saveState();
@@ -604,94 +386,15 @@
       return filledWeights.length > 0 ? filledWeights[filledWeights.length - 1] : (week.pesoInicial || 0);
     }
 
-    function updateMotivationBox(weights, deltaPeso, deltaTalla) {
-      const box = document.getElementById("motivation-box");
-      const icon = document.getElementById("mot-icon");
-      const title = document.getElementById("mot-title");
-      const text = document.getElementById("mot-text");
-      const tag = document.getElementById("mot-tag");
-      const week = getCurrentWeek();
-
-      if (!week) return;
-      tag.textContent = week.title + (week.isClosed ? " 🔒" : "");
-
-      if (weights.length <= 1 && (week.pesoInicial === 0 || !week.pesoInicial)) {
-        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-slate-900 text-white border-slate-800";
-        icon.textContent = "⚙️";
-        title.textContent = "Configuración Inicial Pendiente";
-        title.className = "text-xs font-extrabold uppercase tracking-wider text-blue-400";
-        text.textContent = "Ingresa tus metas diarias de macros y tu peso/talla iniciales para activar el seguimiento analítico en tiempo real.";
-        return;
-      }
-
-      const pDelta = parseFloat(deltaPeso);
-      const tDelta = parseFloat(deltaTalla);
-
-      if (pDelta < 0 || tDelta < 0) {
-        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-emerald-950 text-emerald-100 border-emerald-800";
-        icon.textContent = "🔥";
-        title.textContent = "¡Vas con madre! El sistema funciona";
-        title.className = "text-xs font-extrabold uppercase tracking-wider text-emerald-400";
-        text.textContent = `Vas por buen camino. La báscula o la cinta marca descenso (${pDelta} Kg). No aflojes el paso y mantén el déficit.`;
-      } else if (pDelta === 0 && tDelta === 0) {
-        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-amber-950 text-amber-100 border-amber-800";
-        icon.textContent = "⚠️";
-        title.textContent = "Estancamiento detectado: Revisa tus porciones";
-        title.className = "text-xs font-extrabold uppercase tracking-wider text-amber-400";
-        text.textContent = "El peso y las tallas no se están moviendo. Revisa si te estás pasando con las grasas ocultas o calculando mal los macros.";
-      } else {
-        box.className = "p-4 rounded-xl border shadow-sm transition-all flex items-start gap-3 bg-rose-950 text-rose-100 border-rose-800";
-        icon.textContent = "🚨";
-        title.textContent = "Alerta: Estás subiendo de peso o tallas";
-        title.className = "text-xs font-extrabold uppercase tracking-wider text-rose-400";
-        text.textContent = "Los números van hacia arriba. Sé honesto contigo mismo: ¿te saliste de la dieta este fin de semana?";
-      }
-    }
-
-    function renderQuickView() {
-      const week = getCurrentWeek();
-      if (!week || !week.days) return;
-      const todayData = week.days[currentDayIndex] || week.days[0];
-
-      document.getElementById("quick-date-label").textContent = `${todayData.day} (${todayData.date})`;
-      document.getElementById("quick-day-badge").textContent = `Hoy: ${todayData.day}`;
-      document.getElementById("quick-target-prot").textContent = `Meta: ${week.targetProt || 0}g`;
-      document.getElementById("quick-target-carb").textContent = `Meta: ${week.targetCarb || 0}g`;
-      document.getElementById("quick-target-fat").textContent = `Meta: ${week.targetFat || 0}g`;
-
-      document.getElementById("quick-peso").value = todayData.peso !== undefined ? todayData.peso : '';
-      document.getElementById("quick-prot").value = todayData.prot !== undefined ? todayData.prot : '';
-      document.getElementById("quick-carb").value = todayData.carb !== undefined ? todayData.carb : '';
-      document.getElementById("quick-fat").value = todayData.fat !== undefined ? todayData.fat : '';
-    }
-
-    function saveQuickData() {
-      const week = getCurrentWeek();
-      const p = document.getElementById("quick-peso").value;
-      const prot = document.getElementById("quick-prot").value;
-      const carb = document.getElementById("quick-carb").value;
-      const fat = document.getElementById("quick-fat").value;
-
-      week.days[currentDayIndex].peso = p !== "" ? parseFloat(p) : "";
-      week.days[currentDayIndex].prot = prot !== "" ? parseInt(prot) : "";
-      week.days[currentDayIndex].carb = carb !== "" ? parseInt(carb) : "";
-      week.days[currentDayIndex].fat = fat !== "" ? parseInt(fat) : "";
-
-      saveState();
-      alert("✅ Valores del día actual guardados correctamente.");
-    }
-
     function renderTable() {
       const week = getCurrentWeek();
       if (!week) return;
       if(week.tallaInicial === undefined) week.tallaInicial = 0;
       if(week.tallaFinal === undefined) week.tallaFinal = 0;
 
-      document.getElementById("week-title").textContent = week.title + (week.isClosed ? " (Cerrada)" : "");
       document.getElementById("target-prot").value = week.targetProt || '';
       document.getElementById("target-carb").value = week.targetCarb || '';
       document.getElementById("target-fat").value = week.targetFat || '';
-
       document.getElementById("peso-inicial").value = week.pesoInicial || '';
       document.getElementById("talla-inicial").value = week.tallaInicial || '';
       document.getElementById("talla-final").value = week.tallaFinal || '';
@@ -715,82 +418,58 @@
         const hasData = day.prot !== "" || day.carb !== "" || day.fat !== "";
         if (hasData) countDaysWithData++;
 
-        const diffP = hasData ? (p - (week.targetProt || 0)) : 0;
-        const diffC = hasData ? (c - (week.targetCarb || 0)) : 0;
-        const diffF = hasData ? (f - (week.targetFat || 0)) : 0;
-
-        totalProt += p;
-        totalCarb += c;
-        totalFat += f;
-
+        totalProt += p; totalCarb += c; totalFat += f;
         const dayCal = (p * 4) + (c * 4) + (f * 9);
         totalCal += dayCal;
         if (w) weights.push(w);
 
         const card = document.createElement("div");
-        card.className = `p-3 sm:p-4 transition space-y-2 ${index === currentDayIndex ? 'bg-blue-50/60 border-l-4 border-blue-600' : 'hover:bg-slate-50/80'}`;
+        card.className = `bg-white p-2.5 rounded-xl border shadow-sm transition ${index === currentDayIndex ? 'border-blue-500 bg-blue-50/20' : 'border-slate-200'}`;
         card.innerHTML = `
-          <div class="flex justify-between items-center">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-slate-900 text-sm sm:text-base">${day.day}</span>
-              <span class="text-[11px] text-slate-400 font-medium">${day.date || ''}</span>
-              ${index === currentDayIndex ? '<span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-bold">HOY</span>' : ''}
+          <div class="flex justify-between items-center mb-1.5">
+            <div class="flex items-center gap-1.5">
+              <span class="font-bold text-slate-900 text-xs">${day.day}</span>
+              <span class="text-[10px] text-slate-400">${day.date || ''}</span>
+              ${index === currentDayIndex ? '<span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.2 rounded font-bold">HOY</span>' : ''}
             </div>
-            <div class="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-lg border border-slate-200">
-              <span class="text-[10px] font-bold text-slate-500 uppercase">Peso:</span>
+            <div class="flex items-center gap-1">
+              <span class="text-[10px] font-bold text-slate-500">Peso:</span>
               <input type="number" step="0.1" value="${day.peso !== undefined ? day.peso : ''}" 
-                onfocus="this.select(); window.oldVal = this.value;" 
-                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'peso', this.value);" 
-                class="w-16 bg-white border border-slate-300 rounded px-1 py-0.5 text-center font-bold text-slate-800 text-xs macro-input">
-              <span class="text-[10px] text-slate-500">Kg</span>
+                onblur="updateDayData(${index}, 'peso', this.value)" 
+                class="w-14 bg-slate-50 border rounded px-1 py-0.5 text-center font-bold text-xs">
+              <span class="text-[10px] text-slate-400">Kg</span>
             </div>
           </div>
 
-          <div class="grid grid-cols-3 gap-2 pt-1">
-            <div class="bg-blue-50/40 p-2 rounded-lg border border-blue-100">
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] font-bold text-blue-700">Prot (g)</span>
-                <span class="text-[10px] font-bold ${getDiffColorClass(diffP)}">${hasData ? formatDiff(diffP) : ''}</span>
-              </div>
+          <div class="grid grid-cols-3 gap-1.5 text-center">
+            <div class="bg-blue-50/60 p-1 rounded border border-blue-100">
+              <span class="text-[9px] font-bold text-blue-700 block">Prot (g)</span>
               <input type="number" value="${day.prot !== undefined ? day.prot : ''}" 
-                onfocus="this.select(); window.oldVal = this.value;" 
-                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'prot', this.value);" 
-                class="w-full bg-white border border-blue-200 rounded p-1.5 text-center font-bold text-blue-900 text-sm macro-input">
+                onblur="updateDayData(${index}, 'prot', this.value)" 
+                class="w-full bg-white border border-blue-200 rounded p-1 text-center font-bold text-blue-900 text-xs">
             </div>
-
-            <div class="bg-amber-50/40 p-2 rounded-lg border border-amber-100">
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] font-bold text-amber-700">Carbos (g)</span>
-                <span class="text-[10px] font-bold ${getDiffColorClass(diffC)}">${hasData ? formatDiff(diffC) : ''}</span>
-              </div>
+            <div class="bg-amber-50/60 p-1 rounded border border-amber-100">
+              <span class="text-[9px] font-bold text-amber-700 block">Carbos (g)</span>
               <input type="number" value="${day.carb !== undefined ? day.carb : ''}" 
-                onfocus="this.select(); window.oldVal = this.value;" 
-                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'carb', this.value);" 
-                class="w-full bg-white border border-amber-300 rounded p-1.5 text-center font-bold text-amber-900 text-sm macro-input">
+                onblur="updateDayData(${index}, 'carb', this.value)" 
+                class="w-full bg-white border border-amber-300 rounded p-1 text-center font-bold text-amber-900 text-xs">
             </div>
-
-            <div class="bg-emerald-50/40 p-2 rounded-lg border border-emerald-100">
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-[10px] font-bold text-emerald-700">Grasas (g)</span>
-                <span class="text-[10px] font-bold ${getDiffColorClass(diffF)}">${hasData ? formatDiff(diffF) : ''}</span>
-              </div>
+            <div class="bg-emerald-50/60 p-1 rounded border border-emerald-100">
+              <span class="text-[9px] font-bold text-emerald-700 block">Grasas (g)</span>
               <input type="number" value="${day.fat !== undefined ? day.fat : ''}" 
-                onfocus="this.select(); window.oldVal = this.value;" 
-                onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${index}, 'fat', this.value);" 
-                class="w-full bg-white border border-emerald-200 rounded p-1.5 text-center font-bold text-emerald-900 text-sm macro-input">
+                onblur="updateDayData(${index}, 'fat', this.value)" 
+                class="w-full bg-white border border-emerald-200 rounded p-1 text-center font-bold text-emerald-900 text-xs">
             </div>
           </div>
-          
-          <div class="flex justify-end text-[11px] text-slate-500 font-medium px-1">
-            Calorías del día: <span class="text-slate-800 font-bold ml-1">${dayCal > 0 ? dayCal + ' kcal' : '0 kcal'}</span>
+          <div class="flex justify-between items-center text-[10px] text-slate-400 px-0.5 mt-1">
+            <span>Calorías del día:</span>
+            <span class="text-slate-800 font-bold">${dayCal} kcal</span>
           </div>
         `;
         container.appendChild(card);
       });
 
       const divisor = countDaysWithData > 0 ? countDaysWithData : 1;
-      
-      // Cálculo de promedios diarios consumidos
       const avgProtVal = Math.round(totalProt / divisor);
       const avgCarbVal = Math.round(totalCarb / divisor);
       const avgFatVal = Math.round(totalFat / divisor);
@@ -801,44 +480,17 @@
       document.getElementById("avg-fat").textContent = `${avgFatVal}g`;
       document.getElementById("avg-macros-cal").textContent = `${avgCalVal} kcal/día`;
 
-      // Nivelación Semanal
-      const weeklyTargetProt = (week.targetProt || 0) * 7;
-      const weeklyTargetCarb = (week.targetCarb || 0) * 7;
-      const weeklyTargetFat = (week.targetFat || 0) * 7;
+      const nivP = totalProt - ((week.targetProt || 0) * 7);
+      const nivC = totalCarb - ((week.targetCarb || 0) * 7);
+      const nivF = totalFat - ((week.targetFat || 0) * 7);
 
-      const nivP = totalProt - weeklyTargetProt;
-      const nivC = totalCarb - weeklyTargetCarb;
-      const nivF = totalFat - weeklyTargetFat;
-
-      document.getElementById("niv-prot").textContent = formatDiff(nivP);
-      document.getElementById("niv-carb").textContent = formatDiff(nivC);
-      document.getElementById("niv-fat").textContent = formatDiff(nivF);
+      document.getElementById("niv-prot").textContent = nivP > 0 ? `+${nivP}` : nivP;
+      document.getElementById("niv-carb").textContent = nivC > 0 ? `+${nivC}` : nivC;
+      document.getElementById("niv-fat").textContent = nivF > 0 ? `+${nivF}` : nivF;
       document.getElementById("niv-cal").textContent = `${(nivP * 4) + (nivC * 4) + (nivF * 9)} kcal`;
 
-      const avgPeso = weights.length > 0 ? (weights.reduce((a, b) => a + b, 0) / weights.length).toFixed(1) : 0;
-
-      document.getElementById("prom-peso").textContent = `${avgPeso} Kg`;
-      document.getElementById("prom-cal").textContent = `${avgCalVal} kcal`;
-
       const pesoFinal = weights.length > 0 ? weights[weights.length - 1] : (week.pesoInicial || 0);
-      const deltaPeso = week.pesoInicial ? (pesoFinal - week.pesoInicial).toFixed(1) : 0;
-      const deltaTalla = week.tallaInicial ? (week.tallaFinal - week.tallaInicial).toFixed(1) : 0;
-      
       document.getElementById("peso-final-display").textContent = `${pesoFinal} Kg`;
-      document.getElementById("res-peso-diff").textContent = `${deltaPeso > 0 ? '+' : ''}${deltaPeso} Kg`;
-      document.getElementById("talla-delta-display").textContent = `${deltaTalla > 0 ? '+' : ''}${deltaTalla} cm`;
-
-      updateMotivationBox(weights, deltaPeso, deltaTalla);
-    }
-
-    function formatDiff(val) {
-      if (val === 0) return "0";
-      return val > 0 ? `+${val}` : `${val}`;
-    }
-
-    function getDiffColorClass(val) {
-      if (val === 0) return "text-slate-400";
-      return val > 0 ? "text-emerald-600" : "text-rose-600";
     }
 
     function updateDayData(index, key, val) {
@@ -879,9 +531,8 @@
     }
 
     function resetCurrentWeek() {
-      if (confirm("¿Seguro que deseas reiniciar los registros de esta semana?")) {
+      if (confirm("¿Reiniciar registros de esta semana?")) {
         const week = getCurrentWeek();
-        if (!week) return;
         week.days.forEach(d => { d.peso = ""; d.prot = ""; d.carb = ""; d.fat = ""; });
         saveState();
       }
@@ -889,33 +540,8 @@
 
     function render() {
       renderWeekSelect();
-      renderQuickView();
       renderTable();
     }
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
-    }
-
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('install-container').classList.remove('hidden');
-    });
-
-    document.getElementById('btn-install')?.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          document.getElementById('install-container').classList.add('hidden');
-        }
-        deferredPrompt = null;
-      } else {
-        alert("Para instalar en iPhone: Toca el botón 'Compartir' de Safari y selecciona 'Agregar a inicio'. En Android, usa el menú de los 3 puntos de Chrome y selecciona 'Instalar aplicación'.");
-      }
-    });
 
     render();
   </script>
