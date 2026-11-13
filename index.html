@@ -35,18 +35,18 @@
     </button>
   </div>
 
-  <!-- MODAL: RESUMEN TOTAL COMPLETO Y COPIABLE -->
+  <!-- MODAL: RESUMEN TOTAL COMPLETO Y COPIABLE (HASTA EL DÍA SELECCIONADO) -->
   <div id="summary-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3">
     <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-4 space-y-3 max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">📊 Resumen Completo para Compartir</h3>
+        <h3 class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">📊 Resumen al Día en Curso</h3>
         <button onclick="closeSummaryModal()" class="text-slate-400 font-bold text-base px-1">✕</button>
       </div>
 
-      <!-- Texto formateado listo para copiar con saltos de línea claros -->
+      <!-- Texto formateado listo para copiar -->
       <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-2">
         <div class="font-bold text-slate-800">Vista Previa del Mensaje:</div>
-        <textarea id="summary-text-box" readonly class="w-full h-56 bg-white border border-slate-300 rounded-lg p-2.5 font-mono text-[11px] text-slate-700 outline-none resize-none"></textarea>
+        <textarea id="summary-text-box" readonly class="w-full h-64 bg-white border border-slate-300 rounded-lg p-2.5 font-mono text-[11px] text-slate-700 outline-none resize-none"></textarea>
       </div>
 
       <!-- BOTONES DE ACCIÓN DEL MODAL -->
@@ -111,18 +111,18 @@
         <span class="text-2xl">⚖️</span>
         <div>
           <h1 class="text-xs font-extrabold text-slate-900 leading-tight">Control de Macros</h1>
-          <select id="week-select" onchange="switchWeek(this.value)" class="bg-slate-50 border border-slate-300 text-slate-900 font-bold text-xs rounded px-1.5 py-0.5 outline-none mt-0.5">
+          <select id="week-select" tabindex="-1" onchange="switchWeek(this.value)" class="bg-slate-50 border border-slate-300 text-slate-900 font-bold text-xs rounded px-1.5 py-0.5 outline-none mt-0.5">
           </select>
         </div>
       </div>
       <div class="flex items-center gap-1.5">
-        <button onclick="openSummaryModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow-sm transition flex items-center gap-1">
+        <button tabindex="-1" onclick="openSummaryModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg shadow-sm transition flex items-center gap-1">
           📊 Resumen
         </button>
-        <button onclick="openNewWeekModal()" class="bg-slate-100 hover:bg-slate-200 text-blue-700 font-bold text-xs px-2.5 py-2 rounded-lg border border-slate-300 transition" title="Nueva Semana">
+        <button tabindex="-1" onclick="openNewWeekModal()" class="bg-slate-100 hover:bg-slate-200 text-blue-700 font-bold text-xs px-2.5 py-2 rounded-lg border border-slate-300 transition" title="Nueva Semana">
           +
         </button>
-        <button onclick="deleteCurrentWeek()" class="bg-rose-50 text-rose-700 font-bold text-xs px-2 py-2 rounded-lg border border-rose-200" title="Eliminar semana">
+        <button tabindex="-1" onclick="deleteCurrentWeek()" class="bg-rose-50 text-rose-700 font-bold text-xs px-2 py-2 rounded-lg border border-rose-200" title="Eliminar semana">
           🗑️
         </button>
       </div>
@@ -137,15 +137,15 @@
       <div class="grid grid-cols-3 gap-2 text-xs">
         <div>
           <label class="block font-bold text-blue-700 text-[9px] uppercase mb-0.5">Proteína (g)</label>
-          <input type="number" id="target-prot" onchange="updateTargets()" class="w-full bg-blue-50/50 border border-blue-200 rounded p-1 text-center font-bold text-blue-900 text-xs outline-none">
+          <input type="number" inputmode="numeric" enterkeyhint="next" id="target-prot" onchange="updateTargets()" onkeydown="handleEnterNav(event, 'target-carb')" class="w-full bg-blue-50/50 border border-blue-200 rounded p-1 text-center font-bold text-blue-900 text-xs outline-none">
         </div>
         <div>
           <label class="block font-bold text-amber-700 text-[9px] uppercase mb-0.5">Carbohidratos (g)</label>
-          <input type="number" id="target-carb" onchange="updateTargets()" class="w-full bg-amber-50/50 border border-amber-200 rounded p-1 text-center font-bold text-amber-900 text-xs outline-none">
+          <input type="number" inputmode="numeric" enterkeyhint="next" id="target-carb" onchange="updateTargets()" onkeydown="handleEnterNav(event, 'target-fat')" class="w-full bg-amber-50/50 border border-amber-200 rounded p-1 text-center font-bold text-amber-900 text-xs outline-none">
         </div>
         <div>
           <label class="block font-bold text-emerald-700 text-[9px] uppercase mb-0.5">Grasas (g)</label>
-          <input type="number" id="target-fat" onchange="updateTargets()" class="w-full bg-emerald-50/50 border border-emerald-200 rounded p-1 text-center font-bold text-emerald-900 text-xs outline-none">
+          <input type="number" inputmode="numeric" enterkeyhint="next" id="target-fat" onchange="updateTargets()" onkeydown="handleEnterNav(event, 'peso-inicial')" class="w-full bg-emerald-50/50 border border-emerald-200 rounded p-1 text-center font-bold text-emerald-900 text-xs outline-none">
         </div>
       </div>
 
@@ -153,15 +153,15 @@
         <div>
           <label class="text-[9px] text-slate-500 block mb-0.5">Peso Inicial / Final (Kg):</label>
           <div class="flex gap-1">
-            <input type="number" step="0.1" id="peso-inicial" onchange="updateInitialWeight()" class="w-1/2 bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-xs" placeholder="Inicial">
+            <input type="number" step="0.1" inputmode="decimal" enterkeyhint="next" id="peso-inicial" onchange="updateInitialWeight()" onkeydown="handleEnterNav(event, 'talla-inicial')" class="w-1/2 bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-xs" placeholder="Inicial">
             <span id="peso-final-display" class="w-1/2 bg-slate-100 border border-slate-300 rounded p-1 text-center font-bold text-xs leading-none flex items-center justify-center text-slate-800">0 Kg</span>
           </div>
         </div>
         <div>
           <label class="text-[9px] text-slate-500 block mb-0.5">Talla Inicial / Final (cm):</label>
           <div class="flex gap-1">
-            <input type="number" step="0.1" id="talla-inicial" onchange="updateInitialTalla()" class="w-1/2 bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-xs" placeholder="Inicial">
-            <input type="number" step="0.1" id="talla-final" onchange="updateFinalTalla()" class="w-1/2 bg-white border border-slate-300 rounded p-1 text-center font-bold text-xs" placeholder="Final">
+            <input type="number" step="0.1" inputmode="decimal" enterkeyhint="next" id="talla-inicial" onchange="updateInitialTalla()" onkeydown="handleEnterNav(event, 'talla-final')" class="w-1/2 bg-slate-50 border border-slate-300 rounded p-1 text-center font-bold text-xs" placeholder="Inicial">
+            <input type="number" step="0.1" inputmode="decimal" enterkeyhint="next" id="talla-final" onchange="updateFinalTalla()" onkeydown="handleEnterNav(event, 'input-day-peso')" class="w-1/2 bg-white border border-slate-300 rounded p-1 text-center font-bold text-xs" placeholder="Final">
           </div>
         </div>
       </div>
@@ -172,13 +172,13 @@
       <!-- Se llena dinámicamente -->
     </div>
 
-    <!-- APARTADO 2: CAPTURA DEL DÍA SELECCIONADO -->
+    <!-- APARTADO 2: CAPTURA DEL DÍA SELECCIONADO + ACUMULADO AL DÍA -->
     <div id="single-day-container" class="space-y-2">
       <!-- Se llena dinámicamente según el tab activo -->
     </div>
 
     <!-- BOTÓN CERRAR SEMANA INFERIOR -->
-    <button onclick="openCloseWeekModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-1">
+    <button tabindex="-1" onclick="openCloseWeekModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl shadow-md transition text-xs flex items-center justify-center gap-1">
       🔒 CERRAR SEMANA Y CREAR SIGUIENTE
     </button>
 
@@ -247,6 +247,79 @@
     function getCurrentWeek() {
       if (!appState || !appState.weeks) return CLEAN_DATA.weeks.week_1;
       return appState.weeks[appState.activeWeekId] || Object.values(appState.weeks)[0];
+    }
+
+    // Navegación fluida con Enter en móvil y PC
+    function handleEnterNav(e, nextId) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.target.blur(); // Dispara onblur/onchange para guardar
+        const nextEl = document.getElementById(nextId);
+        if (nextEl) {
+          nextEl.focus();
+        }
+      }
+    }
+
+    // Formateo visual de diferencia (negativo = falta por consumir, positivo = excedente)
+    function formatBalance(val, unit = 'g') {
+      if (val === 0) return `0${unit}`;
+      return val > 0 ? `+${val}${unit}` : `${val}${unit}`;
+    }
+
+    function getBalanceBadgeClass(val) {
+      if (val === 0) return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+      if (val < 0) return 'text-amber-700 bg-amber-50 border-amber-200'; // Falta consumir
+      return 'text-rose-700 bg-rose-50 border-rose-200'; // Sobrepasado
+    }
+
+    function getBalanceTextClass(val) {
+      if (val === 0) return 'text-emerald-600';
+      if (val < 0) return 'text-amber-600';
+      return 'text-rose-600';
+    }
+
+    function getBalanceLabel(val) {
+      if (val === 0) return 'En meta';
+      if (val < 0) return 'Falta';
+      return 'Sobra';
+    }
+
+    // Cálculo acumulado desde Lunes (índice 0) hasta el día seleccionado (upToIndex)
+    function getCumulativeStats(week, upToIndex) {
+      const targetP = week.targetProt || 0;
+      const targetC = week.targetCarb || 0;
+      const targetF = week.targetFat || 0;
+      const targetCal = (targetP * 4) + (targetC * 4) + (targetF * 9);
+
+      let consP = 0, consC = 0, consF = 0, consCal = 0;
+      const daysCount = upToIndex + 1;
+
+      for (let i = 0; i <= upToIndex; i++) {
+        const d = week.days[i];
+        const p = parseFloat(d.prot) || 0;
+        const c = parseFloat(d.carb) || 0;
+        const f = parseFloat(d.fat) || 0;
+        consP += p;
+        consC += c;
+        consF += f;
+        consCal += (p * 4) + (c * 4) + (f * 9);
+      }
+
+      const expectedP = targetP * daysCount;
+      const expectedC = targetC * daysCount;
+      const expectedF = targetF * daysCount;
+      const expectedCal = targetCal * daysCount;
+
+      return {
+        daysCount,
+        consP, consC, consF, consCal,
+        expectedP, expectedC, expectedF, expectedCal,
+        diffP: consP - expectedP,
+        diffC: consC - expectedC,
+        diffF: consF - expectedF,
+        diffCal: consCal - expectedCal
+      };
     }
 
     function renderWeekSelect() {
@@ -364,7 +437,10 @@
       document.getElementById("talla-inicial").value = week.tallaInicial || '';
       document.getElementById("talla-final").value = week.tallaFinal || '';
 
-      const targetCal = ((week.targetProt || 0) * 4) + ((week.targetCarb || 0) * 4) + ((week.targetFat || 0) * 9);
+      const targetP = week.targetProt || 0;
+      const targetC = week.targetCarb || 0;
+      const targetF = week.targetFat || 0;
+      const targetCal = (targetP * 4) + (targetC * 4) + (targetF * 9);
       document.getElementById("target-cal-display").textContent = `${targetCal} kcal`;
 
       // Renderizar Tabs de Días
@@ -372,13 +448,14 @@
       tabsContainer.innerHTML = "";
       DAYS_NAMES.forEach((name, index) => {
         const btn = document.createElement("button");
+        btn.tabIndex = -1;
         btn.textContent = name.substring(0, 3);
         btn.onclick = () => switchDayTab(index);
         btn.className = `py-1.5 text-center rounded-lg text-[11px] font-bold transition ${index === activeDayTab ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-300'}`;
         tabsContainer.appendChild(btn);
       });
 
-      // Renderizar Día Activo Seleccionado
+      // Renderizar Día Activo Seleccionado + Balance del día y Acumulado hasta ese día
       const container = document.getElementById("single-day-container");
       container.innerHTML = "";
 
@@ -388,49 +465,102 @@
       const f = parseFloat(day.fat) || 0;
       const dayCal = (p * 4) + (c * 4) + (f * 9);
 
+      // Diferencia del día seleccionado (consumido - meta diaria)
+      const diffDayP = p - targetP;
+      const diffDayC = c - targetC;
+      const diffDayF = f - targetF;
+      const diffDayCal = dayCal - targetCal;
+
+      // Acumulado hasta el día seleccionado
+      const cum = getCumulativeStats(week, activeDayTab);
+
       const card = document.createElement("div");
-      card.className = `bg-white p-3 rounded-xl border border-blue-500 shadow-sm transition flex flex-col justify-between`;
+      card.className = `bg-white p-3 rounded-xl border border-blue-500 shadow-sm transition flex flex-col justify-between space-y-2.5`;
       card.innerHTML = `
-        <div class="flex justify-between items-center mb-2">
+        <div class="flex justify-between items-center">
           <div class="flex items-center gap-2">
             <span class="font-extrabold text-slate-900 text-sm">${day.day}</span>
             <span class="text-xs text-blue-600 font-bold">${day.date || ''}</span>
           </div>
-          <div class="text-xs text-slate-600 font-semibold">
-            Calorías: <b class="text-slate-900">${dayCal} kcal</b>
+          <div class="text-right">
+            <div class="text-xs text-slate-600 font-semibold">
+              Calorías: <b class="text-slate-900">${dayCal} kcal</b>
+            </div>
+            <div class="text-[10px] font-bold ${getBalanceTextClass(diffDayCal)}">
+              ${getBalanceLabel(diffDayCal)} hoy: ${formatBalance(diffDayCal, ' kcal')}
+            </div>
           </div>
         </div>
 
         <div class="space-y-2">
           <div class="bg-slate-50 p-1.5 rounded-lg border border-slate-200">
             <span class="text-[9px] font-bold text-slate-500 block uppercase mb-1">Peso del Día (Kg)</span>
-            <input type="number" step="0.1" value="${day.peso !== undefined ? day.peso : ''}" 
+            <input type="number" step="0.1" inputmode="decimal" enterkeyhint="next" id="input-day-peso" value="${day.peso !== undefined ? day.peso : ''}" 
               onfocus="this.select(); window.oldVal = this.value;" 
               onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${activeDayTab}, 'peso', this.value);" 
+              onkeydown="handleEnterNav(event, 'input-day-prot')"
               class="w-full bg-white border border-slate-300 rounded p-1.5 text-center font-bold text-slate-900 text-sm macro-input">
           </div>
 
           <div class="grid grid-cols-3 gap-2">
             <div class="bg-blue-50/50 p-1.5 rounded-lg border border-blue-100 text-center">
               <span class="text-[9px] font-bold text-blue-700 block uppercase mb-1">Proteína (g)</span>
-              <input type="number" value="${day.prot !== undefined ? day.prot : ''}" 
+              <input type="number" inputmode="numeric" enterkeyhint="next" id="input-day-prot" value="${day.prot !== undefined ? day.prot : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
                 onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${activeDayTab}, 'prot', this.value);" 
+                onkeydown="handleEnterNav(event, 'input-day-carb')"
                 class="w-full bg-white border border-blue-200 rounded p-1.5 text-center font-bold text-blue-900 text-sm macro-input">
+              <div class="mt-1 text-[10px] font-extrabold ${getBalanceTextClass(diffDayP)}">
+                ${getBalanceLabel(diffDayP)}: ${formatBalance(diffDayP)}
+              </div>
             </div>
+
             <div class="bg-amber-50/50 p-1.5 rounded-lg border border-amber-100 text-center">
               <span class="text-[9px] font-bold text-amber-700 block uppercase mb-1">Carbos (g)</span>
-              <input type="number" value="${day.carb !== undefined ? day.carb : ''}" 
+              <input type="number" inputmode="numeric" enterkeyhint="next" id="input-day-carb" value="${day.carb !== undefined ? day.carb : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
                 onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${activeDayTab}, 'carb', this.value);" 
+                onkeydown="handleEnterNav(event, 'input-day-fat')"
                 class="w-full bg-white border border-amber-300 rounded p-1.5 text-center font-bold text-amber-900 text-sm macro-input">
+              <div class="mt-1 text-[10px] font-extrabold ${getBalanceTextClass(diffDayC)}">
+                ${getBalanceLabel(diffDayC)}: ${formatBalance(diffDayC)}
+              </div>
             </div>
+
             <div class="bg-emerald-50/50 p-1.5 rounded-lg border border-emerald-100 text-center">
               <span class="text-[9px] font-bold text-emerald-700 block uppercase mb-1">Grasas (g)</span>
-              <input type="number" value="${day.fat !== undefined ? day.fat : ''}" 
+              <input type="number" inputmode="numeric" enterkeyhint="done" id="input-day-fat" value="${day.fat !== undefined ? day.fat : ''}" 
                 onfocus="this.select(); window.oldVal = this.value;" 
                 onblur="if(this.value==='') this.value = window.oldVal; updateDayData(${activeDayTab}, 'fat', this.value);" 
+                onkeydown="if(event.key==='Enter'){ event.preventDefault(); this.blur(); }"
                 class="w-full bg-white border border-emerald-200 rounded p-1.5 text-center font-bold text-emerald-900 text-sm macro-input">
+              <div class="mt-1 text-[10px] font-extrabold ${getBalanceTextClass(diffDayF)}">
+                ${getBalanceLabel(diffDayF)}: ${formatBalance(diffDayF)}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOQUE DE ACUMULADO HASTA EL DÍA EN CURSO -->
+        <div class="pt-2 border-t border-slate-100 space-y-1.5">
+          <div class="flex justify-between items-center text-[10px]">
+            <span class="font-extrabold text-slate-700 uppercase">📈 Acumulado (Lun → ${day.day.substring(0, 3)})</span>
+            <span class="font-bold px-1.5 py-0.5 rounded border ${getBalanceBadgeClass(cum.diffCal)}">
+              ${getBalanceLabel(cum.diffCal)}: ${formatBalance(cum.diffCal, ' kcal')}
+            </span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+            <div class="p-1 rounded border ${getBalanceBadgeClass(cum.diffP)}">
+              <div class="text-[8px] uppercase opacity-80">Proteína</div>
+              <div class="font-extrabold">${formatBalance(cum.diffP)}</div>
+            </div>
+            <div class="p-1 rounded border ${getBalanceBadgeClass(cum.diffC)}">
+              <div class="text-[8px] uppercase opacity-80">Carbos</div>
+              <div class="font-extrabold">${formatBalance(cum.diffC)}</div>
+            </div>
+            <div class="p-1 rounded border ${getBalanceBadgeClass(cum.diffF)}">
+              <div class="text-[8px] uppercase opacity-80">Grasas</div>
+              <div class="font-extrabold">${formatBalance(cum.diffF)}</div>
             </div>
           </div>
         </div>
@@ -445,54 +575,65 @@
       const week = getCurrentWeek();
       if (!week) return;
 
+      const selectedDay = week.days[activeDayTab] || week.days[0];
       const pMeta = week.targetProt || 0;
       const cMeta = week.targetCarb || 0;
       const fMeta = week.targetFat || 0;
       const calMeta = (pMeta * 4) + (cMeta * 4) + (fMeta * 9);
 
-      let totalProt = 0, totalCarb = 0, totalFat = 0, totalCal = 0, countDays = 0;
-      week.days.forEach(d => {
-        const p = parseFloat(d.prot) || 0;
-        const c = parseFloat(d.carb) || 0;
-        const f = parseFloat(d.fat) || 0;
-        if (d.prot !== "" || d.carb !== "" || d.fat !== "") countDays++;
-        totalProt += p;
-        totalCarb += c;
-        totalFat += f;
-        totalCal += (p * 4) + (c * 4) + (f * 9);
-      });
+      // Balance del día seleccionado
+      const dayP = parseFloat(selectedDay.prot) || 0;
+      const dayC = parseFloat(selectedDay.carb) || 0;
+      const dayF = parseFloat(selectedDay.fat) || 0;
+      const dayCal = (dayP * 4) + (dayC * 4) + (dayF * 9);
 
-      const div = countDays > 0 ? countDays : 1;
-      const avgProt = Math.round(totalProt / div);
-      const avgCarb = Math.round(totalCarb / div);
-      const avgFat = Math.round(totalFat / div);
-      const avgCal = Math.round(totalCal / div);
+      const diffDayP = dayP - pMeta;
+      const diffDayC = dayC - cMeta;
+      const diffDayF = dayF - fMeta;
+      const diffDayCal = dayCal - calMeta;
+
+      // Acumulado únicamente hasta el día seleccionado
+      const cum = getCumulativeStats(week, activeDayTab);
+
+      const avgProt = Math.round(cum.consP / cum.daysCount);
+      const avgCarb = Math.round(cum.consC / cum.daysCount);
+      const avgFat = Math.round(cum.consF / cum.daysCount);
+      const avgCal = Math.round(cum.consCal / cum.daysCount);
 
       const pesoIni = week.pesoInicial || 0;
       const pesoFin = getPesoFinal(week);
       const tallaIni = week.tallaInicial || 0;
       const tallaFin = week.tallaFinal || 0;
 
-      let text = `📊 RESUMEN GENERAL - ${week.title}\n`;
+      let text = `📊 RESUMEN AL DÍA - ${week.title} (Hasta ${selectedDay.day} ${selectedDay.date})\n`;
       text += `----------------------------------\n\n`;
-      text += `🎯 BASE DE MACROS (METAS DIARIAS):\n`;
+      
+      text += `🎯 BASE DE MACROS (META DIARIA):\n`;
       text += `- Proteína: ${pMeta}g\n`;
       text += `- Carbohidratos: ${cMeta}g\n`;
       text += `- Grasas: ${fMeta}g\n`;
       text += `- Calorías Meta: ${calMeta} kcal\n\n`;
 
-      text += `📈 PROMEDIO REAL CONSUMIDO:\n`;
-      text += `- Proteína: ${avgProt}g\n`;
-      text += `- Carbohidratos: ${avgCarb}g\n`;
-      text += `- Grasas: ${avgFat}g\n`;
-      text += `- Calorías Promedio: ${avgCal} kcal/día\n\n`;
+      text += `📌 BALANCE DEL DÍA (${selectedDay.day} ${selectedDay.date}):\n`;
+      text += `- Proteína: ${dayP}g (${getBalanceLabel(diffDayP)}: ${formatBalance(diffDayP)})\n`;
+      text += `- Carbohidratos: ${dayC}g (${getBalanceLabel(diffDayC)}: ${formatBalance(diffDayC)})\n`;
+      text += `- Grasas: ${dayF}g (${getBalanceLabel(diffDayF)}: ${formatBalance(diffDayF)})\n`;
+      text += `- Calorías: ${dayCal} kcal (${getBalanceLabel(diffDayCal)}: ${formatBalance(diffDayCal, ' kcal')})\n\n`;
+
+      text += `📈 ACUMULADO HASTA ${selectedDay.day.toUpperCase()} (${cum.daysCount} ${cum.daysCount === 1 ? 'día' : 'días'}):\n`;
+      text += `- Proteína: ${cum.consP}g / ${cum.expectedP}g (${getBalanceLabel(cum.diffP)}: ${formatBalance(cum.diffP)})\n`;
+      text += `- Carbohidratos: ${cum.consC}g / ${cum.expectedC}g (${getBalanceLabel(cum.diffC)}: ${formatBalance(cum.diffC)})\n`;
+      text += `- Grasas: ${cum.consF}g / ${cum.expectedF}g (${getBalanceLabel(cum.diffF)}: ${formatBalance(cum.diffF)})\n`;
+      text += `- Calorías: ${cum.consCal} kcal / ${cum.expectedCal} kcal (${getBalanceLabel(cum.diffCal)}: ${formatBalance(cum.diffCal, ' kcal')})\n`;
+      text += `- Promedio Diario: ${avgProt}g Prot | ${avgCarb}g Carb | ${avgFat}g Grasa (${avgCal} kcal/día)\n\n`;
 
       text += `⚖️ RESULTADO DE PESO Y MEDIDA:\n`;
-      text += `- Peso Inicial: ${pesoIni} Kg | Peso Final: ${pesoFin} Kg\n`;
+      text += `- Peso Inicial: ${pesoIni} Kg | Peso Actual: ${pesoFin} Kg\n`;
       text += `- Talla Inicial: ${tallaIni} cm | Talla Final: ${tallaFin} cm\n\n`;
 
-      text += `📅 REGISTROS DIARIOS:\n`;
-      week.days.forEach(d => {
+      text += `📅 REGISTROS DIARIOS (LUNES A ${selectedDay.day.toUpperCase()}):\n`;
+      for (let i = 0; i <= activeDayTab; i++) {
+        const d = week.days[i];
         const dp = d.prot !== "" ? `${d.prot}g` : `0g`;
         const dc = d.carb !== "" ? `${d.carb}g` : `0g`;
         const df = d.fat !== "" ? `${d.fat}g` : `0g`;
@@ -500,17 +641,17 @@
         const dCal = (parseFloat(d.prot || 0) * 4) + (parseFloat(d.carb || 0) * 4) + (parseFloat(d.fat || 0) * 9);
         
         text += `• ${d.day} (${d.date})\n`;
-        text += `  Peso: ${dw} | Prot: ${dp} | Carb: ${dc} | Grasa: ${df} (${dCal} kcal)\n\n`;
-      });
+        text += `  Peso: ${dw} | Proteína: ${dp} | Carbohidratos: ${dc} | Grasas: ${df} (${dCal} kcal)\n\n`;
+      }
 
-      document.getElementById("summary-text-box").value = text;
+      document.getElementById("summary-text-box").value = text.trim();
     }
 
     function copySummaryText() {
       const textBox = document.getElementById("summary-text-box");
       textBox.select();
       navigator.clipboard.writeText(textBox.value).then(() => {
-        alert("📋 ¡Resumen completo copiado al portapapeles exitosamente!");
+        alert("📋 ¡Resumen al día copiado al portapapeles exitosamente!");
       }).catch(() => {
         alert("No se pudo copiar automáticamente. Puedes seleccionarlo y copiarlo de forma manual.");
       });
